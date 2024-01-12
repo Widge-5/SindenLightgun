@@ -128,6 +128,13 @@ function onoffwrite() { if [ ! $1 = "1" ]; then echo "1"; else echo "0"; fi }
 ############  MAIN   ########
 ############################
 
+function gunsexist() {
+	P1exists=$( [ -e /dev/ttyACM0 ] && echo "true" || echo "false" )
+	P2exists=$( [ -e /dev/ttyACM1 ] && echo "true" || echo "false" )
+	P3exists=$( [ -e /dev/ttyACM2 ] && echo "true" || echo "false" )
+	P4exists=$( [ -e /dev/ttyACM3 ] && echo "true" || echo "false" )
+}
+
 function savechanges() {
   local yn
   yn=$(areyousure "save these changes?")
@@ -269,6 +276,43 @@ function manual_stop() {
 
 }
 
+function run_test(){
+#  clear
+  stopguns
+  manualstart=false
+  var="cfg_"$1"_norm"
+  cd "${!var%/*}"
+  sudo mono "${!var%.config}" sdl 30
+}
+
+function test_menu(){
+  local title
+  local selection
+  local menu_items
+
+
+  while :; do
+    gunsexist
+    menu_items=()
+    if [ "$P1exists" = true ]; then menu_items+=("1" "Player 1"); fi
+    if [ "$P2exists" = true ]; then menu_items+=("2" "Player 2"); fi
+    if [ "$P3exists" = true ]; then menu_items+=("3" "Player 3"); fi
+    if [ "$P4exists" = true ]; then menu_items+=("4" "Player 4"); fi
+    title="Sinden Test and Calibration"
+    selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+      "\nWhich gun do you want to test/calibrate?\n\nNote: Running a test will stop any manually started running Lightgun processes" \
+      16 50 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+	
+          case "$selection" in
+            1) run_test "P1";;
+            2) run_test "P2";;
+            3) run_test "P3";;
+            4) run_test "P4";;
+			" ") ;;
+            *) return ;;
+          esac
+  done
+}
 #########################
 #  Options
 #########################
@@ -278,28 +322,33 @@ function manual_stop() {
 function mainmenu(){
   local title
   local selection
+  local menu_items
+  
   while :; do
-  comparetypes
+    comparetypes
+    gunsexist
+	menu_items=()
+    menu_items+=("A"  "Autostart Lightguns       : $(onoffread $cfg_enable)")
+    menu_items+=("G"  "Set Global Recoil         : $grecoil") 
+    if [ "$P1exists" = true ]; then menu_items+=("1"  "Player 1                  : $cfg_recoiltypeP1"); fi
+    if [ "$P2exists" = true ]; then menu_items+=("2"  "Player 2                  : $cfg_recoiltypeP2"); fi
+    if [ "$P3exists" = true ]; then menu_items+=("3"  "Player 3                  : $cfg_recoiltypeP3"); fi
+    if [ "$P4exists" = true ]; then menu_items+=("4"  "Player 4                  : $cfg_recoiltypeP4"); fi
+    menu_items+=("R"  "Reset recoil on each boot : $(onoffread $cfg_recoilreset)")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("C"  "Set Lightgun Collection File")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("S"  "Save Changes")
+    menu_items+=("X"  "Reset unsaved changes")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("M"  "Manually Start Lightguns - until stopped")
+    menu_items+=("K"  "Kill Running Lightgun Processes")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("T"  "Test and Calibrate Lightguns")
+
     title="Sinden Autostart Options"
     selection=$(dialog --cancel-label " Exit " --title "$title" --backtitle "$backtitle" --menu \
-        "\nApply your settings here" \
-        23 70 12 \
-        "A"  "Autostart Lightguns       : $(onoffread $cfg_enable)" \
-        "G"  "Set Global Recoil         : $grecoil" \
-        "1"  "Player 1                  : $cfg_recoiltypeP1" \
-        "2"  "Player 2                  : $cfg_recoiltypeP2" \
-        "3"  "Player 3                  : $cfg_recoiltypeP3" \
-        "4"  "Player 4                  : $cfg_recoiltypeP4" \
-		"R"  "Reset recoil on each boot : $(onoffread $cfg_recoilreset)" \
-		" "  "                                      " \
-		"C"  "Set Lightgun Collection File" \
-		" "  "                                      " \
-        "S"  "Save Changes" \
-        "X"  "Reset unsaved changes" \
-        " "  "                                      " \
-		"M"  "Manually Start Lightguns - until stopped" \
-		"K"  "Kill Running Lightgun Processes" \
-		3>&1 1>&2 2>&3 )
+        "\nApply your settings here" \ 25 70 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
           case "$selection" in
             A) cfg_enable=$(onoffwrite $cfg_enable)  ;;
             G) set_global ;;
@@ -313,7 +362,8 @@ function mainmenu(){
             X) prep ;;
             M) manual_start ;;
             K) manual_stop ;;
-            " ") ;;
+			T) test_menu ;;
+			" ") ;;
             *) return ;;
           esac
   done
