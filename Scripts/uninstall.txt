@@ -1,0 +1,1 @@
+You can completely uninstall the Sinden software and Widge's autostart scripts from Retropie-Setup.
