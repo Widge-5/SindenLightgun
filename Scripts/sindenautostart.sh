@@ -419,12 +419,14 @@ function linedelete(){
 function uninstall() {
   local yn
   echo "This command will uninstall Sinded Autostart."
-  echo "Are you sure you want to uninstall the official unofficial Sinden Autostart? [y/n]"
-  read -N1 yn
-  if ! ([ "$yn" = "y" ] || [ "$yn" = "Y" ]); then
-    echo " : Cancelling uninstall"
-    exit
-  fi
+  
+  #echo "Are you sure you want to uninstall the official unofficial Sinden Autostart? [y/n]"
+  #read -N1 yn
+  #if ! ([ "$yn" = "y" ] || [ "$yn" = "Y" ]); then
+  #  echo " : Cancelling uninstall"
+  #  exit
+  #fi
+  
   echo " : Proceeding with uninstall!"
   
   applychange "$utilscfg" "AutostartEnable"        "0"
