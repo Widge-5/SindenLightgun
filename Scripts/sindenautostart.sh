@@ -1116,11 +1116,6 @@ function gunsexist() {
 	P2exists=$( [ -e /dev/ttyACM1 ] && echo "true" || echo "false" )
 	P3exists=$( [ -e /dev/ttyACM2 ] && echo "true" || echo "false" )
 	P4exists=$( [ -e /dev/ttyACM3 ] && echo "true" || echo "false" )
-
-	P1exists=true
-	P2exists=true
-	P3exists=true
-	P4exists=true
 }
 
 function savechanges() {
