@@ -554,10 +554,10 @@ function cameraprep() {
   s_contrast="\"CameraContrast\""          ;  v_contrast=$(getvalues $s_contrast)
   s_expauto="\"CameraExposureAuto\""       ;  v_expauto=$(getvalues $s_expauto)
   s_exposure="\"CameraExposure\""          ;  v_exposure=$(getvalues $s_exposure)
-  s_saturation="\"CameraSaturation\""      ;  v_saturation=$(getvalues $s_saturation)
   s_colourrange="\"ColourMatchRange\""     ;  v_colourrange=$(getvalues $s_colourrange)
-  s_whiteauto="\"CameraWhiteBalanceAuto\"" ;  v_whiteauto=$(getvalues $s_whiteauto)
-  s_whitebalance="\"CameraWhiteBalance\""  ;  v_whitebalance=$(getvalues $s_whitebalance)
+  #s_saturation="\"CameraSaturation\""      ;  v_saturation=$(getvalues $s_saturation)
+  #s_whiteauto="\"CameraWhiteBalanceAuto\"" ;  v_whiteauto=$(getvalues $s_whiteauto)
+  #s_whitebalance="\"CameraWhiteBalance\""  ;  v_whitebalance=$(getvalues $s_whitebalance)
 }
 
 
@@ -565,11 +565,11 @@ function savecamera() {
   applychange $1 $s_brightness     $v_brightness
   applychange $1 $s_contrast       $v_contrast  
   applychange $1 $s_expauto        $v_expauto   
-  applychange $1 $s_saturation     $v_saturation
-  applychange $1 $s_colourrange    $v_colourrange
-  applychange $1 $s_whiteauto      $v_whiteauto  
-  applychange $1 $s_whitebalance   $v_whitebalance
   applychange $1 $s_exposure       $v_exposure  
+  applychange $1 $s_colourrange    $v_colourrange
+  #applychange $1 $s_saturation     $v_saturation
+  #applychange $1 $s_whiteauto      $v_whiteauto  
+  #applychange $1 $s_whitebalance   $v_whitebalance
 }
 
 
@@ -586,12 +586,9 @@ function cameramenu() {
       "2"  "Contrast ($v_contrast)" \
       "3"  "Auto Exposure ($(onoffread $v_expauto))" \
       "4"  "Manual Exposure ($v_exposure)" \
-      "5"  "Saturation ($v_saturation)" \
-      "6"  "Colour Match Range ($v_colourrange)" \
-      "7"  "Auto White Balance ($(onoffread $v_whiteauto))" \
-      "8"  "Manual White Balance ($v_whitebalance)" \
-      "9"  "Transfer this file's settings to another config file" \
-      "10" "Save changes" \
+      "5"  "Colour Match Range ($v_colourrange)" \
+      "6"  "Transfer this file's settings to another config file" \
+      "7"  "Save changes" \
       3>&1 1>&2 2>&3 )
     case "$selection" in
       1) v_brightness=$(rangeentry "Camera Brightness" 0 255 $v_brightness) ;;
@@ -601,12 +598,9 @@ function cameramenu() {
            if [ -z "$v_exposure" ]; then v_exposure="-5"; fi
            v_exposure=$(rangeentry "Camera Manual Exposure" -9 0 $v_exposure "This value will be blank if Auto Exposure is on.\n\n")
          fi ;;
-      5) v_saturation=$(rangeentry "Camera Saturation" 0 512 $v_saturation) ;;
-      6) v_colourrange=$(rangeentry "Camera Colour Match Range" 0 512 $v_colourrange "Slight increases to this value can sometimes help with border recognition.\n\n") ;;
-      7) v_whiteauto=$(onoffwrite $v_whiteauto) ;;
-      8) v_whitebalance=$(rangeentry "Camera Manual White Balance" 2800 6500 $v_whitebalance) ;;
-      9) settingstransfer "Camera" ;;
-      10) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
+      5) v_colourrange=$(rangeentry "Camera Colour Match Range" 0 512 $v_colourrange "Slight increases to this value can sometimes help with border recognition.\n\n") ;;
+      6) settingstransfer "Camera" ;;
+      7) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
              if [ $yn == "0" ]; then
                savecamera $sourcefile
                dialog --backtitle "$backtitle" --title "Save Complete" --msgbox "\nCamera changes have been saved for $sourcename." 12 78
