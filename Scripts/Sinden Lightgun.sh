@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo /home/pi/Lightgun/utils/sindenautostart.sh
+sudo /home/"$USER"/Lightgun/utils/sindenautostart.sh

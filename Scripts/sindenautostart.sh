@@ -6,7 +6,7 @@
 ##   v3.00    January 2023
 ##   -- By Widge
 ##
-##   For use with Sinden v1.8 config files
+##   For use with Sinden Software v1.08 config files
 ##
 ######################################################################
 
@@ -16,11 +16,10 @@
 ############  GLOBAL ######
 ###########################
 
-backtitle="Autostart Options for Sinden Lightgun v3.00 -- By Widge"
-utilscfg="/home/pi/Lightgun/utils/widgeutils.cfg"
-collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
-manualstart=false
+backtitle="Autostart Options for Sinden Lightgun v3.00 -- By Widge"
+utilscfg="/home/"$SUDO_USER"/Lightgun/utils/widgeutils.cfg"
+collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
 
 function builder() { if ! grep -Fq "$1" "$3" ; then echo "$1=\"$2\"" >> $3 ; fi ; }
@@ -35,18 +34,18 @@ function cfgmaker() {
     echo "[ CONFIG LOCATIONS ] S1 & S2 are Supermodel-specific configs." >> $utilscfg
     echo >> $utilscfg
   fi
-  builder "<P1normal>" "/home/pi/Lightgun/Normal/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2normal>" "/home/pi/Lightgun/Normal/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3normal>" "/home/pi/Lightgun/Normal/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4normal>" "/home/pi/Lightgun/Normal/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1recoil>" "/home/pi/Lightgun/RecMono/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2recoil>" "/home/pi/Lightgun/RecMono/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3recoil>" "/home/pi/Lightgun/RecMono/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4recoil>" "/home/pi/Lightgun/RecMono/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1auto>" "/home/pi/Lightgun/RecAuto/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2auto>" "/home/pi/Lightgun/RecAuto/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3auto>" "/home/pi/Lightgun/RecAuto/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4auto>" "/home/pi/Lightgun/RecAuto/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono4.exe.config" "$utilscfg"
   if  ! grep -Fq "[ AUTOSTART SETTINGS ]" "$utilscfg" ; then
     echo >> $utilscfg
     echo "[ AUTOSTART SETTINGS ]" >> $utilscfg
@@ -65,11 +64,11 @@ function cfgmaker() {
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onlaunch.sh
-    echo "/home/pi/Lightgun/utils/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
+    echo "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onend.sh
-    echo "/home/pi/Lightgun/utils/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
+    echo "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
   fi
 }
 
@@ -80,6 +79,7 @@ function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
 
 
 function prep() {
+  manualstart=false
   cfgmaker
   cfg_P1_norm=$(grabber "<P1normal>" "$utilscfg")
   cfg_P1_reco=$(grabber "<P1recoil>" "$utilscfg")
@@ -333,6 +333,7 @@ function mainmenu(){
 function stopguns(){
     sudo pkill -9 -f "mono"
     sudo rm /tmp/LightgunMono* -f
+	disable_os_reload_buttons
 }
 
 
@@ -382,10 +383,10 @@ function uninstall() {
   linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh"
   linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh"
   echo "...Removed references to sindenautostart from EmulationStation files..."
-  /bin/rm -f "/home/pi/Lightgun/utils/sindenautostart.sh"
+  /bin/rm -f "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh"
   echo "...Deleted sindenautostart.sh..."
-  bin/rm -f "/home/pi/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
-  bin/rm -f "/home/pi/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
+  bin/rm -f "/home/"$SUDO_USER"/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
+  bin/rm -f "/home/"$SUDO_USER"/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
   echo "...Deleted Options Menu from EmulationStation..."
   echo "Uninstall complete."
 }
@@ -393,6 +394,40 @@ function uninstall() {
 #########################
 #  Autostart
 #########################
+
+
+function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_auto
+	
+}
+
+function disable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_norm
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_reco
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_auto
+	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_auto
+	
+}
+
 
 function autostart(){  
   local rc_emu="$2"
@@ -403,10 +438,8 @@ function autostart(){
   local player3
   local player4
 
- if [ fgrep -q "$rc_rom" "$rc_collection" ] || [ $manualstart=true ]; then
-#    if [ "$rc_emu" = "Supermodel" ]; then
-#		### do something to enable supermodel offscreen reloading ###
-#    fi
+ if  fgrep -q "$rc_rom" "$rc_collection" || $manualstart=true ; then
+
     player1="cfg_P1_"
     player2="cfg_P2_"
     player3="cfg_P3_"
@@ -431,6 +464,13 @@ function autostart(){
       auto)   player4=$player4"auto" ;;
       *)      player4=$player4"norm" ;;
     esac
+
+
+    if [ "$rc_emu" = "supermodel3" ]; then  ## ## SM3 (specifically Lost World) can't handle o/s reloading by itself, so requires the sinden options to be enabled.
+      	echo "Supermodel3 detected. Enabling offscreen reloading..."
+		enable_os_reload_buttons
+    fi
+
 
     if [ ! $cfg_recoiltypeP1 = "off" ]; then
 	  cd "${!player1%/*}"
