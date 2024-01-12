@@ -16,9 +16,10 @@
 ############  GLOBAL ######
 ###########################
 
+if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
 backtitle="Autostart Options for Sinden Lightgun v3.00 -- By Widge"
-utilscfg="/home/"$SUDO_USER"/Lightgun/utils/widgeutils.cfg"
+utilscfg="/home/$USERNAME/Lightgun/utils/widgeutils.cfg"
 collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
 
@@ -31,21 +32,21 @@ function cfgmaker() {
   fi
   if  ! grep -Fq "[ CONFIG LOCATIONS ]" "$utilscfg" ; then
     echo >> $utilscfg
-    echo "[ CONFIG LOCATIONS ] S1 & S2 are Supermodel-specific configs." >> $utilscfg
+    echo "[ CONFIG LOCATIONS ]" >> $utilscfg
     echo >> $utilscfg
   fi
-  builder "<P1normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4normal>" "/home/"$SUDO_USER"/Lightgun/Normal/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4recoil>" "/home/"$SUDO_USER"/Lightgun/RecMono/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4auto>" "/home/"$SUDO_USER"/Lightgun/RecAuto/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono4.exe.config" "$utilscfg"
+  builder "<P1auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono1.exe.config" "$utilscfg"
+  builder "<P2auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono2.exe.config" "$utilscfg"
+  builder "<P3auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono3.exe.config" "$utilscfg"
+  builder "<P4auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono4.exe.config" "$utilscfg"
   if  ! grep -Fq "[ AUTOSTART SETTINGS ]" "$utilscfg" ; then
     echo >> $utilscfg
     echo "[ AUTOSTART SETTINGS ]" >> $utilscfg
@@ -58,17 +59,18 @@ function cfgmaker() {
   builder "<RecoilTypeP4>" "off" "$utilscfg"
   builder "<RecoilReset>" "0" "$utilscfg"
   builder "<LightgunCollectionFile>" "NONE" "$utilscfg"
+  chown $USERNAME:$USERNAME $utilscfg
 
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/autostart.sh" ; then
     sed -i -e "1s/^/\/home\/pi\/Lightgun\/utils\/sindenautostart.sh -r\n/" "/opt/retropie/configs/all/autostart.sh"
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onlaunch.sh
-    echo "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
+    echo "/home/$USERNAME/Lightgun/utils/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onend.sh
-    echo "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
+    echo "/home/$USERNAME/Lightgun/utils/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
   fi
 }
 
@@ -435,10 +437,10 @@ function uninstall() {
   linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh"
   linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh"
   echo "...Removed references to sindenautostart from EmulationStation files..."
-  /bin/rm -f "/home/"$SUDO_USER"/Lightgun/utils/sindenautostart.sh"
+  /bin/rm -f "/home/$USERNAME/Lightgun/utils/sindenautostart.sh"
   echo "...Deleted sindenautostart.sh..."
-  bin/rm -f "/home/"$SUDO_USER"/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
-  bin/rm -f "/home/"$SUDO_USER"/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
+  bin/rm -f "/home/$USERNAME/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
+  bin/rm -f "/home/$USERNAME/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
   echo "...Deleted Options Menu from EmulationStation..."
   echo "Uninstall complete."
 }
