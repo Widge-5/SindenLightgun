@@ -217,6 +217,9 @@ function choosefile() { # [title] [message]
   local choicename
   local yn
   local destfile
+  selfile=""
+  selname=""
+       
   selection=$(dialog --title "$1" --backtitle "$backtitle" --menu "$2" 22 70 18 \
       "1"   "$name_P1_norm" \
       "2"   "$name_P1_reco" \
