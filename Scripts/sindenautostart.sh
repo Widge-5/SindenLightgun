@@ -59,6 +59,10 @@ function cfgmaker() {
   builder "<RecoilTypeP3>" "off" "$utilscfg"
   builder "<RecoilTypeP4>" "off" "$utilscfg"
   builder "<RecoilReset>" "0" "$utilscfg"
+  builder "<ResetTypeP1>" "off" "$utilscfg"
+  builder "<ResetTypeP2>" "off" "$utilscfg"
+  builder "<ResetTypeP3>" "off" "$utilscfg"
+  builder "<ResetTypeP4>" "off" "$utilscfg"
   builder "<LightgunCollectionFile>" "NONE" "$utilscfg"
   chown $USERNAME:$USERNAME $utilscfg
 
@@ -103,6 +107,10 @@ function prep() {
   cfg_recoiltypeP3=$(grabber "<RecoilTypeP3>" "$utilscfg")
   cfg_recoiltypeP4=$(grabber "<RecoilTypeP4>" "$utilscfg")
   cfg_recoilreset=$(grabber "<RecoilReset>" "$utilscfg")
+  cfg_resettypeP1=$(grabber "<ResetTypeP1>" "$utilscfg")
+  cfg_resettypeP2=$(grabber "<ResetTypeP2>" "$utilscfg")
+  cfg_resettypeP3=$(grabber "<ResetTypeP3>" "$utilscfg")
+  cfg_resettypeP4=$(grabber "<ResetTypeP4>" "$utilscfg")
   cfg_collectionfile=$(grabber "<LightgunCollectionFile>" "$utilscfg")
 }
 
@@ -470,7 +478,7 @@ function recoilmenu(){
   local title
   local selection
   local yn
-  title="Recoil Main Menu"
+  title="Recoil Settings"
   selection=$(dialog --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
       "\n$sourcename\n\n$sourcefile\n\nWhich recoil settings would you like to view and edit?" \
       20 70 6 \
@@ -537,7 +545,7 @@ function recoilmain(){
       4) recoilbuttons
          recoilmenuitem=3 ;;
       5) recoilvalues ;;
-      9|*) return ;;
+      *) return ;;
     esac
   done
 }
@@ -1074,7 +1082,7 @@ function cfgeditmenu(){
   local title
   local selection
   while :; do
-    title="Front Menu"
+    title="Sinden Lightgun Config Editor"
     selection=$(dialog --cancel-label " Exit " --title "$title" --backtitle "$backtitle" --menu \
         "\nWhat config elements would you like to view and edit?" \
         20 70 4 \
@@ -1140,6 +1148,10 @@ function savechanges() {
     applychange "$utilscfg" "RecoilTypeP3"           $cfg_recoiltypeP3     
     applychange "$utilscfg" "RecoilTypeP4"           $cfg_recoiltypeP4     
     applychange "$utilscfg" "RecoilReset"            $cfg_recoilreset
+    applychange "$utilscfg" "ResetTypeP1"            $cfg_resettypeP1     
+    applychange "$utilscfg" "ResetTypeP2"            $cfg_resettypeP2     
+    applychange "$utilscfg" "ResetTypeP3"            $cfg_resettypeP3     
+    applychange "$utilscfg" "ResetTypeP4"            $cfg_resettypeP4     
     applychange "$utilscfg" "LightgunCollectionFile" "$cfg_collectionfile"
 
   else
@@ -1158,6 +1170,13 @@ function comparetypes(){
   fi
 }
 
+function compareresettypes(){
+  if [ "$cfg_resettypeP1" = "$cfg_resettypeP2" ] && [ "$cfg_resettypeP2" = "$cfg_resettypeP3" ] && [ "$cfg_resettypeP3" = "$cfg_resettypeP4" ]; then
+    greset="all "$cfg_resettypeP1
+  else
+    greset="individual"
+  fi
+}
 
 
 function set_recoil(){
@@ -1172,6 +1191,18 @@ function set_recoil(){
   esac
 }
 
+
+function set_reset(){
+  local var
+  var="cfg_resettype"$1
+  case "${!var}" in
+    off)    export "$var=silent" ;;
+    silent)    export "$var=single" ;;
+    single) export "$var=auto"   ;;
+    auto)   export "$var=off"    ;;
+    *)      export "$var=off"    ;;
+  esac
+}
 
 
 function set_global(){
@@ -1204,6 +1235,36 @@ function set_global(){
 }
 
 
+function set_reset_global(){
+  case "$greset" in
+    "inividual"|"all off")
+        cfg_resettypeP1="silent"
+        cfg_resettypeP2="silent"
+        cfg_resettypeP3="silent"
+        cfg_resettypeP4="silent"
+        ;;
+    "all silent")
+        cfg_resettypeP1="single"
+        cfg_resettypeP2="single"
+        cfg_resettypeP3="single"
+        cfg_resettypeP4="single"
+        ;;
+    "all single")
+        cfg_resettypeP1="auto"
+        cfg_resettypeP2="auto"
+        cfg_resettypeP3="auto"
+        cfg_resettypeP4="auto"
+        ;;
+    "all auto"|*)
+        cfg_resettypeP1="off"
+        cfg_resettypeP2="off"
+        cfg_resettypeP3="off"
+        cfg_resettypeP4="off"
+        ;;
+  esac
+}
+
+
 
 function set_collectionfile(){
   local title="Set your Lightgun Games Collection file."
@@ -1211,7 +1272,7 @@ function set_collectionfile(){
   local i=0 # define counting variable
   local j=0 # define counting variable
   local firstlist=() # define working array  local line
-  firstlist+=($j "I don't have one yet")
+  firstlist+=($j "No File. (Indiscriminate Autostart)")
   while read -r line; do # process file by file
     let i=$i+1
     if [[ $line == *.cfg ]]; then
@@ -1221,9 +1282,9 @@ function set_collectionfile(){
   selection=$(dialog --title "$title" --ok-label " Select " --cancel-label " None " --menu "Select your Lightgun Games collection file from the list of available collections." 20 70 10 "${firstlist[@]}" 3>&2 2>&1 1>&3)
   if [ ! $selection = "0" ]; then
     cfg_collectionfile="${firstlist[((($selection+1)*2)-1)]}"
-    dialog --title "$title" --msgbox "\nYou have selected \"${firstlist[((($selection+1)*2)-1)]}\"" 10 70
+    dialog --title "$title" --msgbox "\nYou have selected \"${firstlist[((($selection+1)*2)-1)]}\\n\n(Remember to save before you exit)" 10 70
   else
-    dialog --title "$title" --msgbox "\nNo collection has been selected. You will not be able to autostart your guns without a collection." 10 70
+    dialog --title "$title" --msgbox "\n           No collection was selected\nAutostart will be enabled for all types of games\n\n       (Remember to save before you exit)" 10 52
     cfg_collectionfile="NONE"
   fi
 }
@@ -1294,6 +1355,47 @@ function test_menu(){
 #  Options
 #########################
 
+function moremenu(){
+  local title
+  local selection
+  local menu_items
+  
+  while :; do
+    compareresettypes
+	menu_items=()
+    menu_items+=("R"  "Reset Recoil on Each Boot : $(onoffread $cfg_recoilreset)")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("1"  "Reset Type for Player 1   : $cfg_resettypeP1")
+    menu_items+=("2"  "Reset Type for Player 2   : $cfg_resettypeP2")
+    menu_items+=("3"  "Reset Type for Player 3   : $cfg_resettypeP3")
+    menu_items+=("4"  "Reset Type for Player 4   : $cfg_resettypeP4")
+    menu_items+=("G"  "Set Global Reset Type     : $greset") 
+    menu_items+=(" "  "                                      ")
+    menu_items+=("C"  "Set Lightgun Collection File")
+    menu_items+=(" "  "                                      ")
+    menu_items+=("T"  "Test and Calibrate Lightguns")
+	menu_items+=(" "  "                                      ")
+    menu_items+=("E"  "Lightgun Config Editor")
+
+    title="More Sinden Autostart Options"
+    selection=$(dialog --help-button --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+        "\nApply your settings here" \ 23 70 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+          case "$selection" in
+            R) cfg_recoilreset=$(onoffwrite $cfg_recoilreset)  ;;
+            1) set_reset "P1";;
+            2) set_reset "P2";;
+            3) set_reset "P3";;
+            4) set_reset "P4";;
+            G) set_reset_global ;;
+            C) set_collectionfile ;;
+			T) test_menu ;;
+			E) cfgeditmenu ;;
+			" ") ;;
+            *)  if [ $? -eq 2 ]; then showhelp; else return; fi;;
+          esac
+  done
+}
+
 
 
 function mainmenu(){
@@ -1306,28 +1408,24 @@ function mainmenu(){
     gunsexist
 	menu_items=()
     menu_items+=("A"  "Autostart Lightguns       : $(onoffread $cfg_enable)")
-    menu_items+=("G"  "Set Global Recoil         : $grecoil") 
+    menu_items+=(" "  "                                      ")
+    menu_items+=("G"  "Set States Globally       : $grecoil") 
     if [ "$P1exists" = true ]; then menu_items+=("1"  "Player 1                  : $cfg_recoiltypeP1"); fi
     if [ "$P2exists" = true ]; then menu_items+=("2"  "Player 2                  : $cfg_recoiltypeP2"); fi
     if [ "$P3exists" = true ]; then menu_items+=("3"  "Player 3                  : $cfg_recoiltypeP3"); fi
     if [ "$P4exists" = true ]; then menu_items+=("4"  "Player 4                  : $cfg_recoiltypeP4"); fi
-    menu_items+=("R"  "Reset recoil on each boot : $(onoffread $cfg_recoilreset)")
-    menu_items+=(" "  "                                      ")
-    menu_items+=("C"  "Set Lightgun Collection File")
     menu_items+=(" "  "                                      ")
     menu_items+=("S"  "Save Changes")
-    menu_items+=("X"  "Reset unsaved changes")
+    menu_items+=("X"  "Reset Unsaved Changes")
     menu_items+=(" "  "                                      ")
     menu_items+=("M"  "Manually Start Lightguns - until stopped")
     menu_items+=("K"  "Kill Running Lightgun Processes")
     menu_items+=(" "  "                                      ")
-    menu_items+=("T"  "Test and Calibrate Lightguns")
-	menu_items+=(" "  "                                      ")
-    menu_items+=("E"  "Lightgun Config Editor")
+    menu_items+=("Z"  "More Options...")
 
     title="Sinden Autostart Options"
-    selection=$(dialog --cancel-label " Exit " --title "$title" --backtitle "$backtitle" --menu \
-        "\nApply your settings here" \ 27 70 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+    selection=$(dialog --help-button --cancel-label " Exit " --title "$title" --backtitle "$backtitle" --menu \
+        "\nApply your settings here" \ 23 70 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
           case "$selection" in
             A) cfg_enable=$(onoffwrite $cfg_enable)  ;;
             G) set_global ;;
@@ -1335,16 +1433,13 @@ function mainmenu(){
             2) set_recoil "P2";;
             3) set_recoil "P3";;
             4) set_recoil "P4";;
-            R) cfg_recoilreset=$(onoffwrite $cfg_recoilreset)  ;;
-            C) set_collectionfile ;;
             S) savechanges ;;
             X) prep ;;
             M) manual_start ;;
             K) manual_stop ;;
-			T) test_menu ;;
-			E) cfgeditmenu ;;
+			Z) moremenu ;;
 			" ") ;;
-            *) return ;;
+            *)  if [ $? -eq 2 ]; then showhelp; else return; fi;;
           esac
   done
 
@@ -1352,6 +1447,19 @@ function mainmenu(){
   if [ $cfg_enable = "1" ]; then
     stopguns
   fi
+}
+
+
+function showhelp() {
+  local helptxt
+  local title
+  helptxt="/home/$USERNAME/Lightgun/utils/help.txt"
+  title="Sinden Lightgun Autostart Options Help"
+  dialog --scrollbar --no-collapse --title "$title" --backtitle "$backtitle" --msgbox "$(head -c 3K $helptxt)" 35 70
+  
+
+  sleep 3
+  echo $?
 }
 
 
@@ -1376,10 +1484,10 @@ function stopguns(){
 function recoilreset(){
   if [ $cfg_recoilreset = 1 ]; then
     echo "reset the recoil"
-    applychange "$utilscfg" "RecoilTypeP1" "silent"
-    applychange "$utilscfg" "RecoilTypeP2" "silent"
-    applychange "$utilscfg" "RecoilTypeP3" "off"
-    applychange "$utilscfg" "RecoilTypeP4" "off"
+    applychange "$utilscfg" "RecoilTypeP1" $cfg_resettypeP1
+    applychange "$utilscfg" "RecoilTypeP2" $cfg_resettypeP2
+    applychange "$utilscfg" "RecoilTypeP3" $cfg_resettypeP3
+    applychange "$utilscfg" "RecoilTypeP4" $cfg_resettypeP4
   else
     echo "don't reset"
   fi
@@ -1418,6 +1526,7 @@ function uninstall() {
 #########################
 #  Autostart
 #########################
+
 
 
 function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
@@ -1461,9 +1570,9 @@ function autostart(){
   local player2
   local player3
   local player4
+echo $cfg_collectionfile
 
- if  fgrep -q "$rc_rom" "$rc_collection" || $manualstart=true ; then
-
+ if  fgrep -q "$rc_rom" "$rc_collection" || [ $cfg_collectionfile = "NONE" ]; then
     player1="cfg_P1_"
     player2="cfg_P2_"
     player3="cfg_P3_"
@@ -1488,7 +1597,8 @@ function autostart(){
       auto)   player4=$player4"auto" ;;
       *)      player4=$player4"norm" ;;
     esac
-
+	
+	gunsexist
 
     if [ "$rc_emu" = "supermodel3" ]; then  ## ## SM3 (specifically Lost World) can't handle o/s reloading by itself, so requires the sinden options to be enabled.
       	echo "Supermodel3 detected. Enabling offscreen reloading..."
@@ -1496,19 +1606,19 @@ function autostart(){
     fi
 
 
-    if [ ! $cfg_recoiltypeP1 = "off" ]; then
+    if [ ! $cfg_recoiltypeP1 = "off" ] && [ "$P1exists" = true ]; then
 	  cd "${!player1%/*}"
 	  sudo mono-service "${!player1%.config}"
     fi 
-    if [ ! $cfg_recoiltypeP2 = "off" ]; then
+    if [ ! $cfg_recoiltypeP2 = "off" ] && [ "$P2exists" = true ]; then
 	  cd "${!player2%/*}"
       sudo mono-service "${!player2%.config}"
     fi
-    if [ ! $cfg_recoiltypeP3 = "off" ]; then
+    if [ ! $cfg_recoiltypeP3 = "off" ] && [ "$P2exists" = true ]; then
 	  cd "${!player3%/*}"
 	  sudo mono-service "${!player3%.config}"
 	fi
-    if [ ! $cfg_recoiltypeP4 = "off" ]; then
+    if [ ! $cfg_recoiltypeP4 = "off" ] && [ "$P3exists" = true ]; then
 	  cd "${!player4%/*}"
 	  sudo mono-service "${!player4%.config}"
     fi

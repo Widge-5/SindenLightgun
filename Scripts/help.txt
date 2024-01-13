@@ -1,0 +1,53 @@
+Sinden Autostart Options Help
+-----------------------------
+
+Autostart Lightguns
+- When On, the Autostart feature of this utility is activated. Guns will be automatically started when relevant games are launched, and automatically deactivated when the game is closed.
+
+Set States Globally
+- Applies the same "State" setting to all guns.
+
+Player 1-4
+- Only connected guns will be shown here. Set the "State" for each gun individually. States can be as follows:
+- - "Off" - inactive
+- - "Silent" - active using the no-recoil config settings
+- - "Single" - active using the single-shot config settings
+- - "Auto"   - active using the auto-recoil config settings
+
+Save Changes
+- Save Autostart settings applied here
+
+Reset Unsaved Changes
+- Restore settings back to the last-saved state.
+
+Manually Start Lightguns
+- Disables Autostart and activates lightguns according to the "State" setting applied above.  Guns will remain persistently active until manually stopped or disconnected.
+
+Kill Running Lightgun Processes.
+- Manually stops any gun processes that were started manually.
+
+Reset Recoil on Each Boot
+- When On, the gun states will be reset back to pre-determined states on each system boot.  This can be useful if you occasionally use recoil and are likely to forget to return the states to silent before the next late-night gaming session.
+
+Reset Types for Players 1-4
+- Set the "States" the Reset setting will use for each gun individually.
+
+Set Global Reset Type
+- Set the "States" the Reset setting will use for each gun globally.
+
+Set Lightgun Collection File
+- The use of EmulationStation's custom "Collections" is a useful way of telling the Autostart utility which games are lightgun games. It would be a pointless waste of resources to start the lightgun processes on games that do not use lightguns so it would be ideal to use this feature. However, if no collection file is set here then Autostart will apply for all games indiscriminately. Also note that after creating/editing a collection, its advisable that you restart EmulationStation for the changes to effect.
+
+Test and Calibrate Lightguns
+- Launches the standard Sinden Lightgun test utility. Only connected Lightguns will be listed here.
+
+Lightgun Config Editor
+- An extra utility incorporated here that allows the editing of Lightgun config files directly in the interface, rather than editing manually in a text editor.  Also allows backups to be made and restored and settings to be transferred between files. Use with caution.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, and the installation package were create by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
