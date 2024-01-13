@@ -127,6 +127,10 @@ function areyousure() {
 
 function applychange () { sed -i -e "/.*${2}/s/\".*\"/\"${3}\"/" ${1} ; }
 
+
+function applyconfigchange () { sed -i -e "/.*${2}/s/value=\".*\"/value=\"${3}\"/" ${1} ; }
+
+
 function getvalues() { grep $1 $sourcefile | grep -o 'value=".*"' | sed 's/value="//g' | sed 's/"//g' ; }
 
 function onoffread(){ if [ $2 $1 = "1" ]; then echo "on"; else echo "off"; fi }
@@ -309,24 +313,24 @@ yn=$(areyousure "go through with this transfer?")
 
 
 function saverecoil() {
-  applychange $1 $s_agreeterms     $v_agreeterms    
-  applychange $1 $s_enablerecoil   $v_enablerecoil
+  applyconfigchange $1 $s_agreeterms     $v_agreeterms    
+  applyconfigchange $1 $s_enablerecoil   $v_enablerecoil
 
-  applychange $1 $s_rectrigger     $v_rectrigger
-  applychange $1 $s_rectriggeros   $v_rectriggeros
-  applychange $1 $s_recpumpon      $v_recpumpon   
-  applychange $1 $s_recpumpoff     $v_recpumpoff  
+  applyconfigchange $1 $s_rectrigger     $v_rectrigger
+  applyconfigchange $1 $s_rectriggeros   $v_rectriggeros
+  applyconfigchange $1 $s_recpumpon      $v_recpumpon   
+  applyconfigchange $1 $s_recpumpoff     $v_recpumpoff  
 
-  applychange $1 $s_recfl          $v_recfl
-  applychange $1 $s_recfr          $v_recfr
-  applychange $1 $s_recbl          $v_recbl
-  applychange $1 $s_recbr          $v_recbr
+  applyconfigchange $1 $s_recfl          $v_recfl
+  applyconfigchange $1 $s_recfr          $v_recfr
+  applyconfigchange $1 $s_recbl          $v_recbl
+  applyconfigchange $1 $s_recbr          $v_recbr
 
-  applychange $1 $s_singlestrength $v_singlestrength
-  applychange $1 $s_recoiltype     $v_recoiltype
-  applychange $1 $s_autostrength   $v_autostrength
-  applychange $1 $s_autodelay      $v_autodelay
-  applychange $1 $s_autopulse      $v_autopulse
+  applyconfigchange $1 $s_singlestrength $v_singlestrength
+  applyconfigchange $1 $s_recoiltype     $v_recoiltype
+  applyconfigchange $1 $s_autostrength   $v_autostrength
+  applyconfigchange $1 $s_autodelay      $v_autodelay
+  applyconfigchange $1 $s_autopulse      $v_autopulse
 }
 
 
@@ -504,7 +508,7 @@ function recoilmenu(){
              fi ;;
           6) yn=$(areyousure "withdraw your agreement to the terms of the licence? This will disable recoil functionality.")
              if [ $yn == "0" ]; then
-               applychange $sourcefile $s_agreeterms 0 
+               applyconfigchange $sourcefile $s_agreeterms 0 
                recoilprep
                saverecoil
                recoilmenuitem=2
@@ -570,14 +574,14 @@ function cameraprep() {
 
 
 function savecamera() {
-  applychange $1 $s_brightness     $v_brightness
-  applychange $1 $s_contrast       $v_contrast  
-  applychange $1 $s_expauto        $v_expauto   
-  applychange $1 $s_exposure       $v_exposure  
-  applychange $1 $s_colourrange    $v_colourrange
-  #applychange $1 $s_saturation     $v_saturation
-  #applychange $1 $s_whiteauto      $v_whiteauto  
-  #applychange $1 $s_whitebalance   $v_whitebalance
+  applyconfigchange $1 $s_brightness     $v_brightness
+  applyconfigchange $1 $s_contrast       $v_contrast  
+  applyconfigchange $1 $s_expauto        $v_expauto   
+  applyconfigchange $1 $s_exposure       $v_exposure  
+  applyconfigchange $1 $s_colourrange    $v_colourrange
+  #applyconfigchange $1 $s_saturation     $v_saturation
+  #applyconfigchange $1 $s_whiteauto      $v_whiteauto  
+  #applyconfigchange $1 $s_whitebalance   $v_whitebalance
 }
 
 
@@ -710,46 +714,46 @@ function buttonprep() {
 
 
 function savebuttons() { 
-  applychange $1 $s_ontrigger $v_ontrigger
-  applychange $1 $s_onpump $v_onpump
-  applychange $1 $s_onfl $v_onfl
-  applychange $1 $s_onbl $v_onbl
-  applychange $1 $s_onfr $v_onfr
-  applychange $1 $s_onbr $v_onbr
-  applychange $1 $s_onup $v_onup
-  applychange $1 $s_ondown $v_ondown
-  applychange $1 $s_onleft $v_onleft
-  applychange $1 $s_onright $v_onright
-  applychange $1 $s_onmodtrigger $v_onmodtrigger
-  applychange $1 $s_onmodpump $v_onmodpump
-  applychange $1 $s_onmodfl $v_onmodfl
-  applychange $1 $s_onmodbl $v_onmodbl
-  applychange $1 $s_onmodfr $v_onmodfr
-  applychange $1 $s_onmodbr $v_onmodbr
-  applychange $1 $s_onmodup $v_onmodup
-  applychange $1 $s_onmoddown $v_onmoddown
-  applychange $1 $s_onmodleft $v_onmodleft
-  applychange $1 $s_onmodright $v_onmodright
-  applychange $1 $s_offtrigger $v_offtrigger
-  applychange $1 $s_offpump $v_offpump
-  applychange $1 $s_offfl $v_offfl
-  applychange $1 $s_offbl $v_offbl
-  applychange $1 $s_offfr $v_offfr
-  applychange $1 $s_offbr $v_offbr
-  applychange $1 $s_offup $v_offup
-  applychange $1 $s_offdown $v_offdown
-  applychange $1 $s_offleft $v_offleft
-  applychange $1 $s_offright $v_offright
-  applychange $1 $s_offmodtrigger $v_offmodtrigger
-  applychange $1 $s_offmodpump $v_offmodpump
-  applychange $1 $s_offmodfl $v_offmodfl
-  applychange $1 $s_offmodbl $v_offmodbl
-  applychange $1 $s_offmodfr $v_offmodfr
-  applychange $1 $s_offmodbr $v_offmodbr
-  applychange $1 $s_offmodup $v_offmodup
-  applychange $1 $s_offmoddown $v_offmoddown
-  applychange $1 $s_offmodleft $v_offmodleft
-  applychange $1 $s_offmodright $v_offmodright
+  applyconfigchange $1 $s_ontrigger $v_ontrigger
+  applyconfigchange $1 $s_onpump $v_onpump
+  applyconfigchange $1 $s_onfl $v_onfl
+  applyconfigchange $1 $s_onbl $v_onbl
+  applyconfigchange $1 $s_onfr $v_onfr
+  applyconfigchange $1 $s_onbr $v_onbr
+  applyconfigchange $1 $s_onup $v_onup
+  applyconfigchange $1 $s_ondown $v_ondown
+  applyconfigchange $1 $s_onleft $v_onleft
+  applyconfigchange $1 $s_onright $v_onright
+  applyconfigchange $1 $s_onmodtrigger $v_onmodtrigger
+  applyconfigchange $1 $s_onmodpump $v_onmodpump
+  applyconfigchange $1 $s_onmodfl $v_onmodfl
+  applyconfigchange $1 $s_onmodbl $v_onmodbl
+  applyconfigchange $1 $s_onmodfr $v_onmodfr
+  applyconfigchange $1 $s_onmodbr $v_onmodbr
+  applyconfigchange $1 $s_onmodup $v_onmodup
+  applyconfigchange $1 $s_onmoddown $v_onmoddown
+  applyconfigchange $1 $s_onmodleft $v_onmodleft
+  applyconfigchange $1 $s_onmodright $v_onmodright
+  applyconfigchange $1 $s_offtrigger $v_offtrigger
+  applyconfigchange $1 $s_offpump $v_offpump
+  applyconfigchange $1 $s_offfl $v_offfl
+  applyconfigchange $1 $s_offbl $v_offbl
+  applyconfigchange $1 $s_offfr $v_offfr
+  applyconfigchange $1 $s_offbr $v_offbr
+  applyconfigchange $1 $s_offup $v_offup
+  applyconfigchange $1 $s_offdown $v_offdown
+  applyconfigchange $1 $s_offleft $v_offleft
+  applyconfigchange $1 $s_offright $v_offright
+  applyconfigchange $1 $s_offmodtrigger $v_offmodtrigger
+  applyconfigchange $1 $s_offmodpump $v_offmodpump
+  applyconfigchange $1 $s_offmodfl $v_offmodfl
+  applyconfigchange $1 $s_offmodbl $v_offmodbl
+  applyconfigchange $1 $s_offmodfr $v_offmodfr
+  applyconfigchange $1 $s_offmodbr $v_offmodbr
+  applyconfigchange $1 $s_offmodup $v_offmodup
+  applyconfigchange $1 $s_offmoddown $v_offmoddown
+  applyconfigchange $1 $s_offmodleft $v_offmodleft
+  applyconfigchange $1 $s_offmodright $v_offmodright
 }
 
 
