@@ -51,3 +51,5 @@ If you wish to uninstall this utility and the Sinden Lightgun software, you can 
 This utility, and the installation package were created by Widge in January 2024.
 YouTube: www.youtube.com/@widge
 GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.
