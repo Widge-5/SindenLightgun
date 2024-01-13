@@ -48,6 +48,6 @@ Lightgun Config Editor
 
 If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
 
-This utility, and the installation package were create by Widge in January 2024.
+This utility, and the installation package were created by Widge in January 2024.
 YouTube: www.youtube.com/@widge
 GitHub:  www.github.com/Widge-5
