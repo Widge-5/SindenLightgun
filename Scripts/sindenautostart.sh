@@ -1577,9 +1577,8 @@ function autostart(){
   local player2
   local player3
   local player4
-echo $cfg_collectionfile
 
- if  fgrep -q "$rc_rom" "$rc_collection" || [ $cfg_collectionfile = "NONE" ]; then
+  if  fgrep -q "$rc_rom" "$rc_collection" || [ $cfg_collectionfile = "NONE" ]; then
     player1="cfg_P1_"
     player2="cfg_P2_"
     player3="cfg_P3_"
