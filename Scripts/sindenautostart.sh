@@ -1120,12 +1120,6 @@ function cfgeditmenu(){
 ############  MAIN  #########
 ############################
 
-function BACKUPgunsexist() {
-	P1exists=$( [ -e /dev/ttyACM0 ] && echo "true" || echo "false" )
-	P2exists=$( [ -e /dev/ttyACM1 ] && echo "true" || echo "false" )
-	P3exists=$( [ -e /dev/ttyACM2 ] && echo "true" || echo "false" )
-	P4exists=$( [ -e /dev/ttyACM3 ] && echo "true" || echo "false" )
-}
 
 function gunsexist() {
 	
