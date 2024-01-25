@@ -3,7 +3,7 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.00    January 2024
+##   v3.01    January 2024
 ##   -- By Widge
 ##
 ##   For use with Sinden Software v1.08 config files
@@ -1120,11 +1120,43 @@ function cfgeditmenu(){
 ############  MAIN  #########
 ############################
 
-function gunsexist() {
+function BACKUPgunsexist() {
 	P1exists=$( [ -e /dev/ttyACM0 ] && echo "true" || echo "false" )
 	P2exists=$( [ -e /dev/ttyACM1 ] && echo "true" || echo "false" )
 	P3exists=$( [ -e /dev/ttyACM2 ] && echo "true" || echo "false" )
 	P4exists=$( [ -e /dev/ttyACM3 ] && echo "true" || echo "false" )
+}
+
+function gunsexist() {
+	
+	local i
+	local device_file
+	lightgun_files=()
+	pedal_files=()
+	local target_ids=("SindenLightgun" "Sinden_Pedal")
+	# Loop through device paths /dev/ttyACM0 to /dev/ttyACM3
+	for ((i=0; i<4; i++)); do
+		device_file="ttyACM$i"
+		# Check if the device file exists
+		if [ -e "/dev/$device_file" ]; then
+			# Use udevadm to get information about the current device path
+			udev_info=$(udevadm info --query=all --name="/dev/$device_file")
+			# Loop through target IDs
+			for target_id in "${target_ids[@]}"; do
+				# Check if the target ID is present in the udev info
+				if [[ $udev_info =~ $target_id ]]; then
+					#echo "Device with ID $target_id found at $device_file."
+
+					# Store the filename in the corresponding array
+					if [ "$target_id" == "SindenLightgun" ]; then
+						lightgun_files+=("$device_file")
+					elif [ "$target_id" == "Sinden_Pedal" ]; then
+						pedal_files+=("$device_file")
+					fi
+				fi
+			done
+		fi
+	done
 }
 
 function savechanges() {
@@ -1323,11 +1355,13 @@ function manual_stop() {
 
 function run_test(){
 #  clear
+  local devNum
   stopguns
   manualstart=false
-  var="cfg_"$1"_norm"
+  var="cfg_P"$1"_norm"
   cd "${!var%/*}"
   sudo mono "${!var%.config}" sdl 30
+  sleep 3
 }
 
 function test_menu(){
@@ -1339,23 +1373,23 @@ function test_menu(){
   while :; do
     gunsexist
     menu_items=()
-    if [ "$P1exists" = true ]; then menu_items+=("1" "Player 1"); fi
-    if [ "$P2exists" = true ]; then menu_items+=("2" "Player 2"); fi
-    if [ "$P3exists" = true ]; then menu_items+=("3" "Player 3"); fi
-    if [ "$P4exists" = true ]; then menu_items+=("4" "Player 4"); fi
+    if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1" "Player 1"); fi
+    if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2" "Player 2"); fi
+    if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3" "Player 3"); fi
+    if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4" "Player 4"); fi
     title="Sinden Test and Calibration"
     selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
       "\nWhich gun do you want to test/calibrate?\n\nNote: Running a test will stop any manually started running Lightgun processes" \
       16 50 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
-	
-          case "$selection" in
-            1) run_test "P1";;
-            2) run_test "P2";;
-            3) run_test "P3";;
-            4) run_test "P4";;
+	      case "$selection" in
+            1) run_test "1";;
+            2) run_test "2";;
+            3) run_test "3";;
+            4) run_test "4";;
 			" ") ;;
             *) return ;;
           esac
+	sleep 3
   done
 }
 #########################
@@ -1417,10 +1451,10 @@ function mainmenu(){
     menu_items+=("A"  "Autostart Lightguns       : $(onoffread $cfg_enable)")
     menu_items+=(" "  "                                      ")
     menu_items+=("G"  "Set States Globally       : $grecoil") 
-    if [ "$P1exists" = true ]; then menu_items+=("1"  "Player 1                  : $cfg_recoiltypeP1"); fi
-    if [ "$P2exists" = true ]; then menu_items+=("2"  "Player 2                  : $cfg_recoiltypeP2"); fi
-    if [ "$P3exists" = true ]; then menu_items+=("3"  "Player 3                  : $cfg_recoiltypeP3"); fi
-    if [ "$P4exists" = true ]; then menu_items+=("4"  "Player 4                  : $cfg_recoiltypeP4"); fi
+    if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1"  "Player 1                  : $cfg_recoiltypeP1"); fi
+    if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2"  "Player 2                  : $cfg_recoiltypeP2"); fi
+    if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3"  "Player 3                  : $cfg_recoiltypeP3"); fi
+    if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4"  "Player 4                  : $cfg_recoiltypeP4"); fi
     menu_items+=(" "  "                                      ")
     menu_items+=("S"  "Save Changes")
     menu_items+=("X"  "Reset Unsaved Changes")
@@ -1573,61 +1607,40 @@ function autostart(){
   local rc_emu="$2"
   local rc_rom="$3"
   local rc_collection="$collectiondir/$cfg_collectionfile"
-  local player1
-  local player2
-  local player3
-  local player4
+  local playerNum; local devNum
+  local i; local j
 
   if  fgrep -q "$rc_rom" "$rc_collection" || [ $cfg_collectionfile = "NONE" ]; then
-    player1="cfg_P1_"
-    player2="cfg_P2_"
-    player3="cfg_P3_"
-    player4="cfg_P4_"
-    case "$cfg_recoiltypeP1" in
-      single) player1=$player1"reco" ;;
-      auto)   player1=$player1"auto" ;;
-      *)      player1=$player1"norm" ;;
-    esac
-    case "$cfg_recoiltypeP2" in
-      single) player2=$player2"reco" ;;
-      auto)   player2=$player2"auto" ;;
-      *)      player2=$player2"norm" ;;
-    esac
-    case "$cfg_recoiltypeP3" in
-      single) player3=$player3"reco" ;;
-      auto)   player3=$player3"auto" ;;
-      *)      player3=$player3"norm" ;;
-    esac
-    case "$cfg_recoiltypeP4" in
-      single) player4=$player4"reco" ;;
-      auto)   player4=$player4"auto" ;;
-      *)      player4=$player4"norm" ;;
-    esac
-	
-	gunsexist
-
-    if [ "$rc_emu" = "supermodel3" ]; then  ## ## SM3 (specifically Lost World) can't handle o/s reloading by itself, so requires the sinden options to be enabled.
-      	echo "Supermodel3 detected. Enabling offscreen reloading..."
+  
+	if [ "$rc_emu" = "supermodel3" ]; then  ## ## SM3 (specifically Lost World) can't handle o/s reloading by itself, so requires the sinden options to be enabled.
+     	echo "Supermodel3 detected. Enabling offscreen reloading..."
 		enable_os_reload_buttons
     fi
+	
+	gunsexist
+	 
+	for ((i=0; i<4; i++)); do
+		j=$((i + 1))  # Increment the value of i to get j
+		if [ -n "${lightgun_files[$i]}" ]; then
+			devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
+			player="cfg_P"$j"_"
 
+			case "${cfg_recoiltypeP1}" in
+				single) player="${player}reco" ;;
+				auto)   player="${player}auto" ;;
+				*)      player="${player}norm" ;;
+			esac
 
-    if [ ! $cfg_recoiltypeP1 = "off" ] && [ "$P1exists" = true ]; then
-	  cd "${!player1%/*}"
-	  sudo mono-service "${!player1%.config}"
-    fi 
-    if [ ! $cfg_recoiltypeP2 = "off" ] && [ "$P2exists" = true ]; then
-	  cd "${!player2%/*}"
-      sudo mono-service "${!player2%.config}"
-    fi
-    if [ ! $cfg_recoiltypeP3 = "off" ] && [ "$P2exists" = true ]; then
-	  cd "${!player3%/*}"
-	  sudo mono-service "${!player3%.config}"
-	fi
-    if [ ! $cfg_recoiltypeP4 = "off" ] && [ "$P3exists" = true ]; then
-	  cd "${!player4%/*}"
-	  sudo mono-service "${!player4%.config}"
-    fi
+			if [ "${cfg_recoiltypeP1}" != "off" ] && [ -n "${lightgun_files[$i]}" ]; then
+				echo "${player}"
+				echo "${!player%.config}"
+				cd "${!player%/*}"
+				sudo mono-service "${!player%.config}"
+			fi 
+		fi
+	done
+	sleep 5
+
   fi
 }
 
