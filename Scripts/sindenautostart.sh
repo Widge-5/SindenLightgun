@@ -3,7 +3,7 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.01    January 2024
+##   v3.02    January 2024
 ##   -- By Widge
 ##
 ##   For use with Sinden Software v1.08 config files
@@ -80,9 +80,7 @@ function cfgmaker() {
 }
 
 
-
 function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
-
 
 
 function prep() {
@@ -115,14 +113,10 @@ function prep() {
 }
 
 
-
-
-
 function areyousure() {
   dialog --defaultno --title "Are you sure?" --backtitle "$backtitle" --yesno "\nAre you sure you want to $1" 10 70 3>&1 1>&2 2>&3
   echo $?
 }
-
 
 
 function applychange () { sed -i -e "/.*${2}/s/\".*\"/\"${3}\"/" ${1} ; }
@@ -133,14 +127,18 @@ function applyconfigchange () { sed -i -e "/.*${2}/s/value=\".*\"/value=\"${3}\"
 
 function getvalues() { grep $1 $sourcefile | grep -o 'value=".*"' | sed 's/value="//g' | sed 's/"//g' ; }
 
+
 function onoffread(){ if [ $2 $1 = "1" ]; then echo "on"; else echo "off"; fi }
 
+
 function onoffwrite() { if [ ! $1 = "1" ]; then echo "1"; else echo "0"; fi }
+
 
 
 ##############################
 ######  CONFIG EDITOR  ######
 ############################
+
 
 function cfgprep() {
 	name_P1_norm="Player1 - NoRecoil"
@@ -169,6 +167,7 @@ function cfgprep() {
   cfg_P4_auto=$(grabber "<P4auto>" "$utilscfg")
 }
 
+
 function filecheck() {
   if ! test -f "$1"; then
     dialog --title "$title" --backtitle "$backtitle" --msgbox "\nThe selected file doesn't exist.\n\n$1" 10 70 3>&1 1>&2 2>&3
@@ -178,7 +177,9 @@ function filecheck() {
   fi
 }
 
+
 function radiocomparison()  { if [ $1 = $2 ]; then echo "on"; else echo "off"; fi }
+
 
 function rangeentry(){
   local title="$1"
@@ -187,7 +188,6 @@ function rangeentry(){
   11 50 $2 $3 $4 3>&1 1>&2 2>&3 )
     echo $selection
 }
-
 
 
 function captivedialog { # usage: captivedialog [duration(s)] [height] [width] [message] [title]
@@ -208,7 +208,6 @@ function captivedialog { # usage: captivedialog [duration(s)] [height] [width] [
     dialog --title "$5" --yes-label " OK " --no-label " Go Back " --yesno "$4" $2 $3
     captivereturn=$?
 }
-
 
 
 function choosefile() { # [title] [message]
@@ -260,7 +259,6 @@ function choosefile() { # [title] [message]
        return
      fi
 }
-
 
 
 function settingstransfer() {
@@ -361,7 +359,6 @@ function recoilprep() {
 }
 
 
-
 function termsandcond(){ 
   local licensetxt
   local title
@@ -378,8 +375,6 @@ function termsandcond(){
     recoilmenuitem=9
   fi  
 }
-
-
 
 
 function recoilvalues() {
@@ -434,7 +429,6 @@ function recoilvalues() {
 }
 
 
-
 function f_recoiltype(){
   local title
   local selection
@@ -450,7 +444,6 @@ function f_recoiltype(){
       2) v_recoiltype="1" ;;
     esac
 }
-
 
 
 function recoilbuttons(){
@@ -478,7 +471,6 @@ function recoilbuttons(){
   if grep -q "7" <<< "$selection"; then v_recbl="1";        else v_recbl="0"; fi
   if grep -q "8" <<< "$selection"; then v_recbr="1";        else v_recbr="0"; fi
 }
-
 
 
 function recoilmenu(){
@@ -523,7 +515,6 @@ function recoilmenu(){
 }
 
 
-
 function recoilchoosefile() {
   local title
   local selection
@@ -537,7 +528,6 @@ function recoilchoosefile() {
          recoilmenuitem=9
      fi
 }
-
 
 
 function recoilmain(){
@@ -558,10 +548,10 @@ function recoilmain(){
 }
 
 
+
 #########################
 #  Camera
 #########################
-
 
 
 function cameraprep() {
@@ -627,7 +617,6 @@ function cameramenu() {
 }
 
 
-
 function camerachoosefile(){
   local title
   local selection
@@ -641,7 +630,6 @@ function camerachoosefile(){
          cameramenuitem=9
      fi
 }
-
 
 
 function cameramain(){
@@ -659,12 +647,9 @@ function cameramain(){
 
 
 
-
 #########################
 #  Buttons
 #########################
-
-
 
 
 function buttonprep() {
@@ -760,7 +745,6 @@ function savebuttons() {
 }
 
 
-
 function buttonselector(){
   local title
   local selection
@@ -844,8 +828,6 @@ function buttonselector(){
 }
 
 
-
-
 function buttonsonscreen() {
   local title
   local selection
@@ -880,7 +862,6 @@ function buttonsonscreen() {
     esac
   done
 }
-
 
 
 function buttonsoffscreen() {
@@ -919,7 +900,6 @@ function buttonsoffscreen() {
 }
 
 
-
 function buttononoffmenu(){
   local title
   local selection
@@ -950,7 +930,6 @@ function buttononoffmenu(){
           *) buttonmenuitem=9; return ;;
         esac
 }
-
 
 
 function buttonchoosefile(){
@@ -990,12 +969,9 @@ function buttonmain(){
 
 
 
-
-
 #########################
 #  Backup
 #########################
-
 
 
 function restorebackup() {
@@ -1019,7 +995,6 @@ function restorebackup() {
 }
 
 
-
 function makebackup(){
   local title
   local selection
@@ -1041,9 +1016,6 @@ function makebackup(){
 }
 
 
-
-
-
 function backupmenu() {
   local title
   local selection
@@ -1063,8 +1035,6 @@ function backupmenu() {
 }
 
 
-
-
 function backupmain(){
   backupmenuitem=0
   while ! [[ $backupmenuitem -eq 9 ]]; do
@@ -1074,8 +1044,6 @@ function backupmain(){
     esac
   done
 }
-
-
 
 
 
@@ -1114,44 +1082,88 @@ function cfgeditmenu(){
 
 
 
-
-
 ##############################
 ############  MAIN  #########
 ############################
 
 
 function gunsexist() {
-	
-	local i
-	local device_file
+
 	lightgun_files=()
 	pedal_files=()
-	local target_ids=("SindenLightgun" "Sinden_Pedal")
-	# Loop through device paths /dev/ttyACM0 to /dev/ttyACM3
-	for ((i=0; i<4; i++)); do
-		device_file="ttyACM$i"
-		# Check if the device file exists
-		if [ -e "/dev/$device_file" ]; then
-			# Use udevadm to get information about the current device path
-			udev_info=$(udevadm info --query=all --name="/dev/$device_file")
-			# Loop through target IDs
-			for target_id in "${target_ids[@]}"; do
-				# Check if the target ID is present in the udev info
-				if [[ $udev_info =~ $target_id ]]; then
-					#echo "Device with ID $target_id found at $device_file."
+	local device_file
 
-					# Store the filename in the corresponding array
-					if [ "$target_id" == "SindenLightgun" ]; then
-						lightgun_files+=("$device_file")
-					elif [ "$target_id" == "Sinden_Pedal" ]; then
-						pedal_files+=("$device_file")
-					fi
-				fi
-			done
+	for device_file in /dev/ttyACM*; do
+		udev_info=$(udevadm info --query=all --name="$device_file")
+		if [[ $udev_info =~ "SindenLightgun" ]]; then
+			lightgun_files+=("$device_file")
+		fi
+	done
+	
+	for device_file in /dev/input/event*; do
+		udev_info=$(udevadm info --query=all --name="$device_file")
+		if [[ $udev_info =~ "Sinden_Pedal" ]]; then
+			pedal_files+=("$device_file")
 		fi
 	done
 }
+
+
+function run_pedaltest() {
+
+	local title="Sinden Pedal Test"
+	local PEDAL_BTN=()
+	local device_file=${pedal_files[$1]}
+	
+	devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
+			
+	dialog --title "$title" --backtitle "$backtitle" --infobox \
+	"\n   Press the pedal\n\n(You have 10 seconds)" 7 25 3>&1 1>&2 2>&3
+	timeout 10 evtest --grab "$device_file" | grep -m 1 "KEY),\|BTN)," | awk -F'[()]' '{print $(NF-1)}' > "/tmp/evtest_output" && sudo pkill evtest &
+	local EVTEST_PID=$!
+	wait $EVTEST_PID
+	if [ -s /tmp/evtest_output ]; then
+		PEDAL_BTN=$(cat /tmp/evtest_output)
+		dialog --title "$title" --backtitle "$backtitle" --infobox "\n  Pedal is sending\n\n       "$PEDAL_BTN 7 25 3>&1 1>&2 2>&3
+	else
+		dialog --title "$title" --backtitle "$backtitle" --infobox "\n\nNo pedal button detected" 7 28 3>&1 1>&2 2>&3
+	fi
+  sleep 3
+}
+
+
+function pedaltest_menu(){
+	local title
+	local selection
+	local menu_items
+
+	if [ -z "${pedal_files[0]}" ]; then
+		dialog --title "$title" --backtitle "$backtitle" --infobox "\nNo Sinden pedals connected" 5 30 3>&1 1>&2 2>&3
+		sleep 3
+	else
+		while :; do
+			gunsexist
+			menu_items=()
+			if [ -n "${pedal_files[0]}" ]; then menu_items+=("1" "Pedal 1"); fi
+			if [ -n "${pedal_files[1]}" ]; then menu_items+=("2" "Pedal 2"); fi
+			if [ -n "${pedal_files[2]}" ]; then menu_items+=("3" "Pedal 3"); fi
+			if [ -n "${pedal_files[3]}" ]; then menu_items+=("4" "Pedal 4"); fi
+			title="Test Sinden Pedals"
+			selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+			  "\nWhich pedal do you want to test/calibrate?\n\nNote: Only connected Sinden pedals are shown here.\n\nIf you have multiple pedals sending the same key, then you should change one of them using the Windows pedal configuration software." \
+			  19 50 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+			case "$selection" in
+				1) run_pedaltest "0";;
+				2) run_pedaltest "1";;
+				3) run_pedaltest "2";;
+				4) run_pedaltest "3";;
+				" ") ;;
+				*) return ;;
+			esac
+		done
+	fi
+}
+
 
 function savechanges() {
   local yn
@@ -1194,7 +1206,6 @@ function savechanges() {
 }
 
 
-
 function comparetypes(){
   if [ "$cfg_recoiltypeP1" = "$cfg_recoiltypeP2" ] && [ "$cfg_recoiltypeP2" = "$cfg_recoiltypeP3" ] && [ "$cfg_recoiltypeP3" = "$cfg_recoiltypeP4" ]; then
     grecoil="all "$cfg_recoiltypeP1
@@ -1202,6 +1213,7 @@ function comparetypes(){
     grecoil="individual"
   fi
 }
+
 
 function compareresettypes(){
   if [ "$cfg_resettypeP1" = "$cfg_resettypeP2" ] && [ "$cfg_resettypeP2" = "$cfg_resettypeP3" ] && [ "$cfg_resettypeP3" = "$cfg_resettypeP4" ]; then
@@ -1298,7 +1310,6 @@ function set_reset_global(){
 }
 
 
-
 function set_collectionfile(){
   local title="Set your Lightgun Games Collection file."
   local selection
@@ -1338,6 +1349,7 @@ function manual_start() {
   sleep 4
 }
 
+
 function manual_stop() {
 
   stopguns
@@ -1346,6 +1358,7 @@ function manual_stop() {
   sleep 4
 
 }
+
 
 function run_test(){
 #  clear
@@ -1358,37 +1371,46 @@ function run_test(){
   sleep 3
 }
 
+
 function test_menu(){
-  local title
-  local selection
-  local menu_items
+	local title
+	local selection
+	local menu_items
 
+	if [ -z "${lightgun_files[0]}" ]; then
+		dialog --title "$title" --backtitle "$backtitle" --infobox "\nNo Sinden Lightguns connected" 5 33 3>&1 1>&2 2>&3
+		sleep 3
+	else
+		while :; do
+			gunsexist
+			menu_items=()
+			if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1" "Player 1"); fi
+			if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2" "Player 2"); fi
+			if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3" "Player 3"); fi
+			if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4" "Player 4"); fi
+			title="Sinden Test and Calibration"
+			selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+			"\nWhich gun do you want to test/calibrate?\n\nNote: Running a test will stop any manually started running Lightgun processes" \
+			16 50 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+			case "$selection" in
+				1) run_test "1";;
+				2) run_test "2";;
+				3) run_test "3";;
+				4) run_test "4";;
+				" ") ;;
+				*) return ;;
+			esac
+		done
+	fi
 
-  while :; do
-    gunsexist
-    menu_items=()
-    if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1" "Player 1"); fi
-    if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2" "Player 2"); fi
-    if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3" "Player 3"); fi
-    if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4" "Player 4"); fi
-    title="Sinden Test and Calibration"
-    selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
-      "\nWhich gun do you want to test/calibrate?\n\nNote: Running a test will stop any manually started running Lightgun processes" \
-      16 50 12 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
-	      case "$selection" in
-            1) run_test "1";;
-            2) run_test "2";;
-            3) run_test "3";;
-            4) run_test "4";;
-			" ") ;;
-            *) return ;;
-          esac
-	sleep 3
-  done
 }
+
+
+
 #########################
 #  Options
 #########################
+
 
 function moremenu(){
   local title
@@ -1409,6 +1431,7 @@ function moremenu(){
     menu_items+=("C"  "Set Lightgun Collection File")
     menu_items+=(" "  "                                      ")
     menu_items+=("T"  "Test and Calibrate Lightguns")
+	menu_items+=("P"  "Test Sinden Pedals")
 	menu_items+=(" "  "                                      ")
     menu_items+=("E"  "Lightgun Config Editor")
 
@@ -1424,13 +1447,13 @@ function moremenu(){
             G) set_reset_global ;;
             C) set_collectionfile ;;
 			T) test_menu ;;
+			P) pedaltest_menu ;;
 			E) cfgeditmenu ;;
 			" ") ;;
             *)  if [ $? -eq 2 ]; then showhelp; else return; fi;;
           esac
   done
 }
-
 
 
 function mainmenu(){
@@ -1490,12 +1513,11 @@ function showhelp() {
   local title
   helptxt="/home/$USERNAME/Lightgun/utils/help.txt"
   title="Sinden Lightgun Autostart Options Help"
-  dialog --scrollbar --no-collapse --title "$title" --backtitle "$backtitle" --msgbox "$(head -c 3K $helptxt)" 35 70
-  
-
+  dialog --scrollbar --no-collapse --title "$title" --backtitle "$backtitle" --msgbox "$(head -c 5K $helptxt)" 35 70
   sleep 3
   echo $?
 }
+
 
 
 #########################
@@ -1530,6 +1552,7 @@ function recoilreset(){
 }
 
 
+
 #########################
 #  Uninstall
 #########################
@@ -1538,6 +1561,7 @@ function recoilreset(){
 function linedelete(){
   sed -i "/$1/d" $2
 }
+
 
 function uninstall() {
   local yn
@@ -1558,10 +1582,11 @@ function uninstall() {
   echo "Uninstall complete."
 }
 
+
+
 #########################
 #  Autostart
 #########################
-
 
 
 function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
@@ -1579,6 +1604,7 @@ function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s relo
 	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_auto
 	
 }
+
 
 function disable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
 	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_norm
@@ -1637,6 +1663,8 @@ function autostart(){
 
   fi
 }
+
+
 
 #############################
 ############  START  #######
