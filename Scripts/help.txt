@@ -38,6 +38,9 @@ Set Global Reset Type
 Set Lightgun Collection File
 - The use of EmulationStation's custom "Collections" is a useful way of telling the Autostart utility which games are lightgun games. It would be a pointless waste of resources to start the lightgun processes on games that do not use lightguns so it would be ideal to use this feature. However, if no collection file is set here then Autostart will apply for all games indiscriminately. Also note that after creating/editing a collection, its advisable that you restart EmulationStation for the changes to take effect.
 
+Set O/S Reload Usage
+- Most emulators are fine recognising offscreen/onscreen shots with normal settings. But there are a few that don't recognise shots as being fired offscreen as they have no usable area outside of the main game window. One such emulator is the Model 3 emulator called "Supermodel" or "Supermodel 3".  The Sinden software can compensate for this with a config setting that can be enabled to send a different input if a shot is out of bounds. Use this setting to choose emulators that need this setting enabled.
+
 Test and Calibrate Lightguns
 - Launches the standard Sinden Lightgun test utility. Only connected Lightguns will be listed here.
 
