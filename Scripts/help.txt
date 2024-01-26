@@ -41,6 +41,9 @@ Set Lightgun Collection File
 Test and Calibrate Lightguns
 - Launches the standard Sinden Lightgun test utility. Only connected Lightguns will be listed here.
 
+Test Sinden Pedals
+- Test your Sinden Pedals to see if they are working and what key they are sending. If you have multiple Sinden pedals sending the same key, then you should reconfigure at least one of them via the Windows Sinden Pedal Configuration software. Only connected Sinden Pedals will be listed here (max 4).
+
 Lightgun Config Editor
 - An extra utility incorporated here that allows the editing of Lightgun config files directly in the interface, rather than editing manually in a text editor.  Also allows backups to be made and restored and settings to be transferred between config files. Use with caution.
 
@@ -48,7 +51,7 @@ Lightgun Config Editor
 
 If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
 
-This utility, and the installation package were created by Widge in January 2024.
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
 YouTube: www.youtube.com/@widge
 GitHub:  www.github.com/Widge-5
 
