@@ -3,7 +3,7 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.02    January 2024
+##   v3.03    January 2024
 ##   -- By Widge
 ##
 ##   For use with Sinden Software v1.08 config files
@@ -19,7 +19,7 @@
 
 if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
-backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.00 -- By Widge"
+backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.03 -- By Widge"
 utilscfg="/home/$USERNAME/Lightgun/utils/widgeutils.cfg"
 collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
@@ -64,6 +64,7 @@ function cfgmaker() {
   builder "<ResetTypeP3>" "off" "$utilscfg"
   builder "<ResetTypeP4>" "off" "$utilscfg"
   builder "<LightgunCollectionFile>" "NONE" "$utilscfg"
+  builder "<SetOSReload>" "supermodel3" "$utilscfg"
   chown $USERNAME:$USERNAME $utilscfg
 
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/autostart.sh" ; then
@@ -110,6 +111,7 @@ function prep() {
   cfg_resettypeP3=$(grabber "<ResetTypeP3>" "$utilscfg")
   cfg_resettypeP4=$(grabber "<ResetTypeP4>" "$utilscfg")
   cfg_collectionfile=$(grabber "<LightgunCollectionFile>" "$utilscfg")
+  IFS=' ' read -r -a cfg_osr_list <<< "$(grabber "<SetOSReload>" "$utilscfg")"
 }
 
 
@@ -1187,17 +1189,18 @@ function savechanges() {
     done ) |
     dialog --title "Saving..." --gauge "$4" 5 30 $percent
 
-    applychange "$utilscfg" "AutostartEnable"        $cfg_enable           
-    applychange "$utilscfg" "RecoilTypeP1"           $cfg_recoiltypeP1     
-    applychange "$utilscfg" "RecoilTypeP2"           $cfg_recoiltypeP2     
-    applychange "$utilscfg" "RecoilTypeP3"           $cfg_recoiltypeP3     
-    applychange "$utilscfg" "RecoilTypeP4"           $cfg_recoiltypeP4     
-    applychange "$utilscfg" "RecoilReset"            $cfg_recoilreset
-    applychange "$utilscfg" "ResetTypeP1"            $cfg_resettypeP1     
-    applychange "$utilscfg" "ResetTypeP2"            $cfg_resettypeP2     
-    applychange "$utilscfg" "ResetTypeP3"            $cfg_resettypeP3     
-    applychange "$utilscfg" "ResetTypeP4"            $cfg_resettypeP4     
+    applychange "$utilscfg" "AutostartEnable"         $cfg_enable           
+    applychange "$utilscfg" "RecoilTypeP1"            $cfg_recoiltypeP1     
+    applychange "$utilscfg" "RecoilTypeP2"            $cfg_recoiltypeP2     
+    applychange "$utilscfg" "RecoilTypeP3"            $cfg_recoiltypeP3     
+    applychange "$utilscfg" "RecoilTypeP4"            $cfg_recoiltypeP4     
+    applychange "$utilscfg" "RecoilReset"             $cfg_recoilreset
+    applychange "$utilscfg" "ResetTypeP1"             $cfg_resettypeP1     
+    applychange "$utilscfg" "ResetTypeP2"             $cfg_resettypeP2     
+    applychange "$utilscfg" "ResetTypeP3"             $cfg_resettypeP3     
+    applychange "$utilscfg" "ResetTypeP4"             $cfg_resettypeP4     
     applychange "$utilscfg" "LightgunCollectionFile" "$cfg_collectionfile"
+	applychange "$utilscfg" "SetOSReload" 			 "$(echo ${cfg_osr_list[@]})"
 
   else
     dialog --title "SAVE" --infobox "CANCELLED" 3 13
@@ -1405,7 +1408,41 @@ function test_menu(){
 
 }
 
+function set_osr_usage(){
 
+	local title="Setting Offscreen Reload"
+	local menu_items=()
+	local selected_items=()
+	local osr_item
+	local status
+	local index
+	local item
+	local emu_list=($(find "/opt/retropie/configs/" -maxdepth 1 -type d ! -name "all" -exec test -e {}/emulators.cfg \; -exec grep -hoP '^[^=]+' {}/emulators.cfg \; | grep -v "default" | sort -u))
+
+
+	for ((i=0; i<${#emu_list[@]}; i++)); do
+		status="off"
+		for osr_item in "${cfg_osr_list[@]}"; do
+			if [[ "${emu_list[i]}" == "$osr_item" ]]; then
+				status="on"
+				break
+			fi
+		done
+		menu_items+="$((i+1)) ${emu_list[i]} $status "
+	done
+
+	local dialog_result=$(dialog --separate-output --title "$title" --backtitle "$backtitle" --checklist "\nChoose the emulators for which the Offscreen Reload setting in the Sinden configs should be applied:" 23 70 12 ${menu_items[@]} 3>&1 1>&2 2>&3 )
+
+	if [ $? -eq 0 ]; then
+		cfg_osr_list=()
+		for item in $dialog_result; do selected_items+=("$item"); done
+		
+		for item in "${selected_items[@]}"; do
+			index=$((item-1))
+			cfg_osr_list+=("${emu_list[index]}")
+		done
+	fi
+}
 
 #########################
 #  Options
@@ -1429,6 +1466,7 @@ function moremenu(){
     menu_items+=("G"  "Set Global Reset Type     : $greset") 
     menu_items+=(" "  "                                      ")
     menu_items+=("C"  "Set Lightgun Collection File")
+    menu_items+=("O"  "Set O/S Reload Usage")
     menu_items+=(" "  "                                      ")
     menu_items+=("T"  "Test and Calibrate Lightguns")
 	menu_items+=("P"  "Test Sinden Pedals")
@@ -1446,6 +1484,7 @@ function moremenu(){
             4) set_reset "P4";;
             G) set_reset_global ;;
             C) set_collectionfile ;;
+			O) set_osr_usage ;;
 			T) test_menu ;;
 			P) pedaltest_menu ;;
 			E) cfgeditmenu ;;
@@ -1565,7 +1604,7 @@ function linedelete(){
 
 function uninstall() {
   local yn
-  echo "This command will uninstall Sinded Autostart."
+  echo "This command will uninstall Sinden Autostart."
   echo " : Proceeding with uninstall!"
   
   applychange "$utilscfg" "AutostartEnable"        "0"
@@ -1629,13 +1668,19 @@ function autostart(){
   local rc_collection="$collectiondir/$cfg_collectionfile"
   local playerNum; local devNum
   local i; local j
+  local item
 
   if  fgrep -q "$rc_rom" "$rc_collection" || [ $cfg_collectionfile = "NONE" ]; then
   
-	if [ "$rc_emu" = "supermodel3" ]; then  ## ## SM3 (specifically Lost World) can't handle o/s reloading by itself, so requires the sinden options to be enabled.
-     	echo "Supermodel3 detected. Enabling offscreen reloading..."
-		enable_os_reload_buttons
-    fi
+	
+	 for item in "${cfg_osr_list[@]}"; do
+        if [[ "$rc_emu" == "$item" ]]; then
+            echo "Emulator $rc_emu detected. Enabling offscreen reloading..."
+			sleep 3
+            enable_os_reload_buttons
+			break
+        fi
+    done
 	
 	gunsexist
 	 
@@ -1652,8 +1697,6 @@ function autostart(){
 			esac
 
 			if [ "${cfg_recoiltypeP1}" != "off" ] && [ -n "${lightgun_files[$i]}" ]; then
-				echo "${player}"
-				echo "${!player%.config}"
 				cd "${!player%/*}"
 				sudo mono-service "${!player%.config}"
 			fi 
