@@ -57,20 +57,12 @@ if [[ "$md_mode" == "install" ]]; then
     chmod +x "$home/RetroPie/retropiemenu/Sinden Lightgun.sh"
     chmod +x "$home/Lightgun/utils/sindenautostart.sh"
 
-
-
-     # Check RetroPie's gamelist.xml to see if an entry for Sinden Lightgun already exists, and remove it if it does
-    if xmlstarlet sel -t -v "//game[name='Sinden Lightgun']" "/home/pi/gamelist.xml" > /dev/null 2>&1; then
-        xmlstarlet ed --inplace --delete "//game[name='Sinden Lightgun']" "/opt/retropie/configs/all/emulationstation/gamelists/retropie/gamelist.xml"
-    fi
-
-    # Add in a new Sinden Lighgun entry to RetroPie's gamelist.xml
-    xmlstarlet ed --inplace --subnode "/gameList" --type elem -n "game" \
-      --subnode "//gameList/game[last()]" --type elem -n "path" -v "./Sinden Lightgun.sh" \
-      --subnode "//gameList/game[last()]" --type elem -n "name" -v "Sinden Lightgun" \
-      --subnode "//gameList/game[last()]" --type elem -n "desc" -v "Start, stop, test and calibrate your Sinden Lightguns. Includes Autostart settings." \
-      --subnode "//gameList/game[last()]" --type elem -n "image" -v "./icons/sinden.svg" \
-      "/opt/retropie/configs/all/emulationstation/gamelists/retropie/gamelist.xml"
+    # # Add in a new Sinden Lighgun entry to RetroPie's gamelist.xml
+	local function
+	for function in $(compgen -A function _add_rom_); do
+		"$function" "retropie" "RetroPie" "Sinden Lightgun.sh" "Sinden Lightgun" "Start, stop, test and calibrate your Sinden Lightguns. Includes Autostart settings." "$home/RetroPie/retropiemenu/icons/sinden.svg"
+	done
+	
 
 elif [[ "$md_mode" == "remove" ]]; then
 
@@ -83,7 +75,7 @@ elif [[ "$md_mode" == "remove" ]]; then
     rm "$home/RetroPie/retropiemenu/icons/sinden.svg"
 
 
-    # Check RetroPie's gamelist.xml to see if an entry for Sinden Lightgun exists, and remove it if it does
+    # Check RetroPie's gamelist.xml to see if an entry for Sinden Lightgun exists, and remove it if it does --this might not always work
     if xmlstarlet sel -t -v "//game[name='Sinden Lightgun']" "/home/pi/gamelist.xml" > /dev/null 2>&1; then
         xmlstarlet ed --inplace --delete "//game[name='Sinden Lightgun']" "/opt/retropie/configs/all/emulationstation/gamelists/retropie/gamelist.xml"
     fi
