@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 function manual_dir() {
 	local bTest=false
 	while ! $bTest; do
@@ -19,18 +17,15 @@ function manual_dir() {
 }
 
 
-
 if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
 # Get the user's home directory
 home_dir="/home/$USERNAME"
 
-
 # First check the standard location of RetroPie-Setup for retropie_setup.sh and if not
 # found, search for the file within the user's home folder and extract the directory path	
 rpsetup_path="$home_dir/RetroPie-Setup"
 if ! [ -e "$rpsetup_path/retropie_setup.sh" ]; then
-	#rpsetup_path=$(find "$home_dir" -name "retropie_setup.sh" 2>/dev/null)
 	rpsetup_path=$(find "$home_dir" -name "retropie_setup.sh" -exec dirname {} \; 2>/dev/null)
 fi
 
