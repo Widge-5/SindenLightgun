@@ -1,6 +1,7 @@
 #!/bin/bash
 
 
+
 function manual_dir() {
 	local bTest=false
 	while ! $bTest; do
@@ -29,7 +30,8 @@ home_dir="/home/$USERNAME"
 # found, search for the file within the user's home folder and extract the directory path	
 rpsetup_path="$home_dir/RetroPie-Setup"
 if ! [ -e "$rpsetup_path/retropie_setup.sh" ]; then
-	rpsetup_path=$(find "$home_dir" -name "retropie_setup.sh" 2>/dev/null)
+	#rpsetup_path=$(find "$home_dir" -name "retropie_setup.sh" 2>/dev/null)
+	rpsetup_path=$(find "$home_dir" -name "retropie_setup.sh" -exec dirname {} \; 2>/dev/null)
 fi
 
 # Check if directory_path is empty
@@ -74,7 +76,7 @@ echo " "
 echo "Installation complete. Now run RetroPie-Setup to install the utility."
 
 echo " "
-read -p 'Do you wish to delete this downloader?' yn
+read -p 'Do you wish to delete this downloader? (Y|N) ' yn
 case $yn in
 	[Yy]* )
 		rm -- "$0"
