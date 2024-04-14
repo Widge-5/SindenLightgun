@@ -3,7 +3,7 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.03    January 2024
+##   v3.04    April 2024
 ##   -- By Widge
 ##
 ##   For use with Sinden Software v1.08 config files
@@ -85,6 +85,11 @@ function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
 
 
 function prep() {
+
+  if !(ls /dev/input/by-id | grep -q "SindenCam"); then
+    sudo ln -s /dev/video0 /dev/input/by-id/SindenCam
+  fi
+
   manualstart=false
   cfgmaker
   cfg_P1_norm=$(grabber "<P1normal>" "$utilscfg")
