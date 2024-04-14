@@ -19,7 +19,7 @@
 
 if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
-backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.03 -- By Widge"
+backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.04 -- By Widge"
 utilscfg="/home/$USERNAME/Lightgun/utils/widgeutils.cfg"
 collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
