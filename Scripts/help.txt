@@ -9,7 +9,6 @@ Set States Globally
 
 Player 1-4
 - Only connected guns will be shown here. Set the "State" for each gun individually. States can be as follows:
-- - "Off"    - inactive
 - - "Silent" - active using the no-recoil config settings
 - - "Single" - active using the single-shot config settings
 - - "Auto"   - active using the auto-recoil config settings
