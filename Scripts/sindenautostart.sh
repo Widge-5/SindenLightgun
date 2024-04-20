@@ -54,15 +54,15 @@ function cfgmaker() {
     echo >> $utilscfg
   fi
   builder "<AutostartEnable>" "0" "$utilscfg"
-  builder "<RecoilTypeP1>" "off" "$utilscfg"
-  builder "<RecoilTypeP2>" "off" "$utilscfg"
-  builder "<RecoilTypeP3>" "off" "$utilscfg"
-  builder "<RecoilTypeP4>" "off" "$utilscfg"
+  builder "<RecoilTypeP1>" "silent" "$utilscfg"
+  builder "<RecoilTypeP2>" "silent" "$utilscfg"
+  builder "<RecoilTypeP3>" "silent" "$utilscfg"
+  builder "<RecoilTypeP4>" "silent" "$utilscfg"
   builder "<RecoilReset>" "0" "$utilscfg"
-  builder "<ResetTypeP1>" "off" "$utilscfg"
-  builder "<ResetTypeP2>" "off" "$utilscfg"
-  builder "<ResetTypeP3>" "off" "$utilscfg"
-  builder "<ResetTypeP4>" "off" "$utilscfg"
+  builder "<ResetTypeP1>" "silent" "$utilscfg"
+  builder "<ResetTypeP2>" "silent" "$utilscfg"
+  builder "<ResetTypeP3>" "silent" "$utilscfg"
+  builder "<ResetTypeP4>" "silent" "$utilscfg"
   builder "<LightgunCollectionFile>" "NONE" "$utilscfg"
   builder "<SetOSReload>" "supermodel3" "$utilscfg"
   chown $USERNAME:$USERNAME $utilscfg
@@ -1236,11 +1236,9 @@ function set_recoil(){
   local var
   var="cfg_recoiltype"$1
   case "${!var}" in
-    off)    export "$var=silent" ;;
-    silent)    export "$var=single" ;;
-    single) export "$var=auto"   ;;
-    auto)   export "$var=off"    ;;
-    *)      export "$var=off"    ;;
+    "silent") export "$var=single"	;;
+    "single") export "$var=auto"	;;
+    "auto"|*) export "$var=silent"	;;
   esac
 }
 
@@ -1249,23 +1247,15 @@ function set_reset(){
   local var
   var="cfg_resettype"$1
   case "${!var}" in
-    off)    export "$var=silent" ;;
-    silent)    export "$var=single" ;;
-    single) export "$var=auto"   ;;
-    auto)   export "$var=off"    ;;
-    *)      export "$var=off"    ;;
+    "silent") export "$var=single"	;;
+    "single") export "$var=auto"	;;
+    "auto"|*) export "$var=silent"	;;
   esac
 }
 
 
 function set_global(){
   case "$grecoil" in
-    "inividual"|"all off")
-        cfg_recoiltypeP1="silent"
-        cfg_recoiltypeP2="silent"
-        cfg_recoiltypeP3="silent"
-        cfg_recoiltypeP4="silent"
-        ;;
     "all silent")
         cfg_recoiltypeP1="single"
         cfg_recoiltypeP2="single"
@@ -1278,11 +1268,11 @@ function set_global(){
         cfg_recoiltypeP3="auto"
         cfg_recoiltypeP4="auto"
         ;;
-    "all auto"|*)
-        cfg_recoiltypeP1="off"
-        cfg_recoiltypeP2="off"
-        cfg_recoiltypeP3="off"
-        cfg_recoiltypeP4="off"
+    "all auto"|"individual"|*)
+        cfg_recoiltypeP1="silent"
+        cfg_recoiltypeP2="silent"
+        cfg_recoiltypeP3="silent"
+        cfg_recoiltypeP4="silent"
         ;;
   esac
 }
@@ -1290,12 +1280,7 @@ function set_global(){
 
 function set_reset_global(){
   case "$greset" in
-    "inividual"|"all off")
-        cfg_resettypeP1="silent"
-        cfg_resettypeP2="silent"
-        cfg_resettypeP3="silent"
-        cfg_resettypeP4="silent"
-        ;;
+
     "all silent")
         cfg_resettypeP1="single"
         cfg_resettypeP2="single"
@@ -1308,11 +1293,11 @@ function set_reset_global(){
         cfg_resettypeP3="auto"
         cfg_resettypeP4="auto"
         ;;
-    "all auto"|*)
-        cfg_resettypeP1="off"
-        cfg_resettypeP2="off"
-        cfg_resettypeP3="off"
-        cfg_resettypeP4="off"
+    "all auto"|"individual"|*)
+        cfg_resettypeP1="silent"
+        cfg_resettypeP2="silent"
+        cfg_resettypeP3="silent"
+        cfg_resettypeP4="silent"
         ;;
   esac
 }
@@ -1694,7 +1679,7 @@ function autostart(){
 		if [ -n "${lightgun_files[$i]}" ]; then
 			devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
 			player="cfg_P"$j"_"
-   
+
 			typeVar="cfg_recoiltypeP${i}"
 			typeVar= "${!typeVar}"
 			case "${!typeVar}" in
@@ -1703,7 +1688,7 @@ function autostart(){
 				*)      player="${player}norm" ;;
 			esac
 
-			if [ "${cfg_recoiltypeP1}" != "off" ] && [ -n "${lightgun_files[$i]}" ]; then
+			if [ -n "${lightgun_files[$i]}" ]; then
 				cd "${!player%/*}"
 				sudo mono-service "${!player%.config}"
 			fi 
