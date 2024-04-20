@@ -13,10 +13,10 @@ rp_module_flags="rpi4 rpi5 rpi"
 
 function depends_sinden_lightgun() {
     local depends=(mono-complete v4l-utils libsdl1.2-dev libsdl-image1.2-dev libjpeg-dev xmlstarlet evtest)
-	if isPlatform "64bit"; then
-		depends+=(libsdl2-dev libsdl2-image-dev)
+    if isPlatform "64bit"; then
+        depends+=(libsdl2-dev libsdl2-image-dev)
     fi
-	getDepends "${depends[@]}"
+    getDepends "${depends[@]}"
 }
 
 function sources_sinden_lightgun() {
@@ -35,7 +35,7 @@ function configure_sinden_lightgun() {
 
 if [[ "$md_mode" == "install" ]]; then
 
- echo "INSTALLING"
+    echo "INSTALLING"
 
     mkUserDir "$home/Lightgun"
     mkUserDir "$home/Lightgun/utils"
