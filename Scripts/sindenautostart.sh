@@ -3,7 +3,7 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.04    April 2024
+##   v3.05    April 2024
 ##   -- By Widge
 ##
 ##   For use with Sinden Software v1.08 config files
@@ -19,7 +19,7 @@
 
 if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
-backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.04 -- By Widge"
+backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.05 -- By Widge"
 utilscfg="/home/$USERNAME/Lightgun/utils/widgeutils.cfg"
 collectiondir="/opt/retropie/configs/all/emulationstation/collections"
 
@@ -1671,7 +1671,7 @@ function autostart(){
   local rc_emu="$2"
   local rc_rom="$3"
   local rc_collection="$collectiondir/$cfg_collectionfile"
-  local playerNum; local devNum
+  local player; local devNum; local typeVar
   local i; local j
   local item
 
@@ -1694,8 +1694,10 @@ function autostart(){
 		if [ -n "${lightgun_files[$i]}" ]; then
 			devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
 			player="cfg_P"$j"_"
-
-			case "${cfg_recoiltypeP1}" in
+   
+			typeVar="cfg_recoiltypeP${i}"
+			typeVar= "${!typeVar}"
+			case "${!typeVar}" in
 				single) player="${player}reco" ;;
 				auto)   player="${player}auto" ;;
 				*)      player="${player}norm" ;;
