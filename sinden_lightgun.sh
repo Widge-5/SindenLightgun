@@ -12,7 +12,7 @@ rp_module_section="exp"
 rp_module_flags="rpi4 rpi5 rpi"
 
 function depends_sinden_lightgun() {
-    local depends=(mono-complete v4l-utils libsdl1.2-dev libsdl-image1.2-dev libjpeg-dev xmlstarlet evtest)
+    local depends=(mono-complete v4l-utils libsdl1.2-dev libsdl-image1.2-dev libjpeg-dev xmlstarlet evtest fbi)
     if isPlatform "64bit"; then
         depends+=(libsdl2-dev libsdl2-image-dev)
     fi
