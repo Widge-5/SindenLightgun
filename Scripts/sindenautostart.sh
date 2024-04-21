@@ -87,7 +87,7 @@ function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
 function prep() {
 
   if !(ls /dev/input/by-id | grep -q "SindenCam"); then
-    sudo ln -s /dev/video0 /dev/input/by-id/SindenCam
+    ln -s /dev/video0 /dev/input/by-id/SindenCam
   fi
 
   manualstart=false
@@ -1126,7 +1126,7 @@ function run_pedaltest() {
 			
 	dialog --title "$title" --backtitle "$backtitle" --infobox \
 	"\n   Press the pedal\n\n(You have 10 seconds)" 7 25 3>&1 1>&2 2>&3
-	timeout 10 evtest --grab "$device_file" | grep -m 1 "KEY),\|BTN)," | awk -F'[()]' '{print $(NF-1)}' > "/tmp/evtest_output" && sudo pkill evtest &
+	timeout 10 evtest --grab "$device_file" | grep -m 1 "KEY),\|BTN)," | awk -F'[()]' '{print $(NF-1)}' > "/tmp/evtest_output" && pkill evtest &
 	local EVTEST_PID=$!
 	wait $EVTEST_PID
 	if [ -s /tmp/evtest_output ]; then
@@ -1360,7 +1360,7 @@ function run_test(){
   manualstart=false
   var="cfg_P"$1"_norm"
   cd "${!var%/*}"
-  sudo mono "${!var%.config}" sdl 30
+  mono "${!var%.config}" sdl 30
   sleep 3
 }
 
@@ -1555,8 +1555,8 @@ function showhelp() {
 
 
 function stopguns(){
-    sudo pkill -9 -f "mono"
-    sudo rm /tmp/LightgunMono* -f
+    pkill -9 -f "mono"
+    rm /tmp/LightgunMono* -f
 	disable_os_reload_buttons
 }
 
@@ -1690,7 +1690,7 @@ function autostart(){
 
 			if [ -n "${lightgun_files[$i]}" ]; then
 				cd "${!player%/*}"
-				sudo mono-service "${!player%.config}"
+				mono-service "${!player%.config}"
 			fi 
 		fi
 	done
