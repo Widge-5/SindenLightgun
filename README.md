@@ -1,1 +1,1 @@
-Current version is v3.04
+Current version is v3.05
