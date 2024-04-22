@@ -1,0 +1,27 @@
+Sinden Autostart Recoil Options Help
+-----------------------------
+
+Enable/disable which buttons should use recoil
+- Any of the Sinden Lightgun's buttons (excepting the D-Pad) can trigger a recoil event when the recoil mode is not "Off". Choose which buttons do so.  Note that when in Auto Mode, only the Trigger provides Auto recoil, the other buttons will only fire a Single recoil event.
+
+Recoil Intensity Settings
+- The Sinden Lightgun has three recoil modes: Single (firing the solenoid once per event), Auto (repeated firing throughout the duration of an event) and Off (no recoil).  Rapid firing at high strength and frequency levels can deplete the capacitor faster than it can recharge. You can make adjustments here to mitigate against that.
+
+Transfer settings
+- Copy this player's saved settings to another player.
+
+Save changes
+- Write changes made to the player's config. Quitting without saving will lose any changes made.
+
+Withdraw Agreement to the Terms of Use
+- Use of the Sinden Lightgun's Recoil feature requires agreement to the Terms of Use.  If you choose to withdraw your agreement, Recoil will be disabled.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.

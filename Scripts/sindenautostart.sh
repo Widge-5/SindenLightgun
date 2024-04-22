@@ -3,14 +3,13 @@
 ######################################################################
 ##
 ##   Autostart Options for Sinden Lightgun
-##   v3.05    April 2024
+##   v4.00    April 2024
 ##   -- By Widge
 ##
-##   For use with Sinden Software v1.08 config files
+##   For use with Sinden Software v2.07 config files
 ##   and RetroPie on Raspberry Pi 4 and 5 (32/64 bit)
 ##
 ######################################################################
-
 
 
 ###########################
@@ -19,12 +18,40 @@
 
 if [ $USER == "root" ]; then USERNAME=$SUDO_USER; else USERNAME=$USER; fi
 
-backtitle="Autostart Options and Config Editor for Sinden Lightgun - v3.05 -- By Widge"
-utilscfg="/home/$USERNAME/Lightgun/utils/widgeutils.cfg"
+backtitle="Autostart Options and Config Editor for Sinden Lightgun - v4.00 -- By Widge"
+utilsdir="/home/$USERNAME/Lightgun/utils"
+utilscfg=$utilsdir"/widgeutils-TEMP.cfg"
+appdir="/home/$USERNAME/Lightgun/Application"
 collectiondir="/opt/retropie/configs/all/emulationstation/collections"
+
+helpmain=$utilsdir"/help-main.txt"
+helprecoil=$utilsdir"/help-recoil.txt"
+helprecoilint=$utilsdir"/help-recoil-int.txt"
+helpcamera=$utilsdir"/help-camera.txt"
+helpbuttons=$utilsdir"/help-buttons.txt"
+helpbuttonsimg=$utilsdir"/help-buttons.png"
 
 
 function builder() { if ! grep -Fq "$1" "$3" ; then echo "$1=\"$2\"" >> $3 ; fi ; }
+
+function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
+
+function applychange () { sed -i -e "/.*${2}/s/\".*\"/\"${3}\"/" ${1} ; }
+
+function applyconfigchange () { sed -i -e "/.*${2}/s/value=\".*\"/value=\"${3}\"/" ${1} ; }
+
+function onoffread(){ if [ $2 $1 = "1" ]; then echo "on"; else echo "off"; fi }
+
+function onoffwrite() { if [ ! $1 = "1" ]; then echo "1"; else echo "0"; fi }
+
+function getvalues() { grep $1 $sourcefile | grep -o 'value=".*"' | sed 's/value="//g' | sed 's/"//g' ; }
+
+function areyousure() {
+  dialog --defaultno --title "Are you sure?" --backtitle "$backtitle" --yesno "\nAre you sure you want to $1" 10 70 3>&1 1>&2 2>&3
+  echo $?
+}
+
+function showimage() { fbi -T 1 -d /dev/fb0 -a -noverbose -t 10 -1 $1 ; }
 
 
 function cfgmaker() {
@@ -36,28 +63,16 @@ function cfgmaker() {
     echo "[ CONFIG LOCATIONS ]" >> $utilscfg
     echo >> $utilscfg
   fi
-  builder "<P1normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4normal>" "/home/$USERNAME/Lightgun/Normal/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4recoil>" "/home/$USERNAME/Lightgun/RecMono/LightgunMono4.exe.config" "$utilscfg"
-  builder "<P1auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono1.exe.config" "$utilscfg"
-  builder "<P2auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono2.exe.config" "$utilscfg"
-  builder "<P3auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono3.exe.config" "$utilscfg"
-  builder "<P4auto>" "/home/$USERNAME/Lightgun/RecAuto/LightgunMono4.exe.config" "$utilscfg"
+  builder "<Player1>" "LightgunMono12.exe.config" "$utilscfg"
+  builder "<Player2>" "LightgunMono12.exe.config" "$utilscfg"
+  builder "<Player3>" "LightgunMono34.exe.config" "$utilscfg"
+  builder "<Player4>" "LightgunMono34.exe.config" "$utilscfg"
   if  ! grep -Fq "[ AUTOSTART SETTINGS ]" "$utilscfg" ; then
     echo >> $utilscfg
     echo "[ AUTOSTART SETTINGS ]" >> $utilscfg
     echo >> $utilscfg
   fi
   builder "<AutostartEnable>" "0" "$utilscfg"
-  builder "<RecoilTypeP1>" "silent" "$utilscfg"
-  builder "<RecoilTypeP2>" "silent" "$utilscfg"
-  builder "<RecoilTypeP3>" "silent" "$utilscfg"
-  builder "<RecoilTypeP4>" "silent" "$utilscfg"
   builder "<RecoilReset>" "0" "$utilscfg"
   builder "<ResetTypeP1>" "silent" "$utilscfg"
   builder "<ResetTypeP2>" "silent" "$utilscfg"
@@ -68,77 +83,111 @@ function cfgmaker() {
   chown $USERNAME:$USERNAME $utilscfg
 
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/autostart.sh" ; then
-    sed -i -e "1s/^/\/home\/$USERNAME\/Lightgun\/utils\/sindenautostart.sh -r\n/" "/opt/retropie/configs/all/autostart.sh"
+    sed -i -e "1s|^|$utilsdir/sindenautostart.sh -r\n|" "/opt/retropie/configs/all/autostart.sh"
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onlaunch.sh
-    echo "/home/$USERNAME/Lightgun/utils/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
+    echo $utilsdir"/sindenautostart.sh -a \"\$1\" \"\$2\" \"\$3\" \"\$4\"" >> /opt/retropie/configs/all/runcommand-onlaunch.sh
   fi
   if ! grep -Fq "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh" ; then
     echo >> /opt/retropie/configs/all/runcommand-onend.sh
-    echo "/home/$USERNAME/Lightgun/utils/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
+    echo $utilsdir"/sindenautostart.sh -x" >> "/opt/retropie/configs/all/runcommand-onend.sh"
   fi
 }
 
-
-function grabber(){ grep "$1" "$2" | grep -o '".*"' | sed 's/"//g' ; }
-
-
 function prep() {
-
-  if !(ls /dev/input/by-id | grep -q "SindenCam"); then
-    ln -s /dev/video0 /dev/input/by-id/SindenCam
-  fi
 
   manualstart=false
   cfgmaker
-  cfg_P1_norm=$(grabber "<P1normal>" "$utilscfg")
-  cfg_P1_reco=$(grabber "<P1recoil>" "$utilscfg")
-  cfg_P1_auto=$(grabber "<P1auto>" "$utilscfg")
-  cfg_P2_norm=$(grabber "<P2normal>" "$utilscfg")
-  cfg_P2_reco=$(grabber "<P2recoil>" "$utilscfg")
-  cfg_P2_auto=$(grabber "<P2auto>" "$utilscfg")
-  cfg_P3_norm=$(grabber "<P3normal>" "$utilscfg")
-  cfg_P3_reco=$(grabber "<P3recoil>" "$utilscfg")
-  cfg_P3_auto=$(grabber "<P3auto>" "$utilscfg")
-  cfg_P4_norm=$(grabber "<P4normal>" "$utilscfg")
-  cfg_P4_reco=$(grabber "<P4recoil>" "$utilscfg")
-  cfg_P4_auto=$(grabber "<P4auto>" "$utilscfg")
+  cfg_P1=$(grabber "<Player1>" "$utilscfg")
+  cfg_P2=$(grabber "<Player2>" "$utilscfg")
+  cfg_P3=$(grabber "<Player3>" "$utilscfg")
+  cfg_P4=$(grabber "<Player4>" "$utilscfg")
   
   cfg_enable=$(grabber "<AutostartEnable>" "$utilscfg")
-  cfg_recoiltypeP1=$(grabber "<RecoilTypeP1>" "$utilscfg")
-  cfg_recoiltypeP2=$(grabber "<RecoilTypeP2>" "$utilscfg")
-  cfg_recoiltypeP3=$(grabber "<RecoilTypeP3>" "$utilscfg")
-  cfg_recoiltypeP4=$(grabber "<RecoilTypeP4>" "$utilscfg")
   cfg_recoilreset=$(grabber "<RecoilReset>" "$utilscfg")
   cfg_resettypeP1=$(grabber "<ResetTypeP1>" "$utilscfg")
   cfg_resettypeP2=$(grabber "<ResetTypeP2>" "$utilscfg")
   cfg_resettypeP3=$(grabber "<ResetTypeP3>" "$utilscfg")
   cfg_resettypeP4=$(grabber "<ResetTypeP4>" "$utilscfg")
-  cfg_collectionfile=$(grabber "<LightgunCollectionFile>" "$utilscfg")
   IFS=' ' read -r -a cfg_osr_list <<< "$(grabber "<SetOSReload>" "$utilscfg")"
+  cfg_collectionfile=$(grabber "<LightgunCollectionFile>" "$utilscfg")
+  
+   sourcefile="$appdir/$cfg_P1"
+   s_calibration="\"EnableCalibration\"" ;  cfg_calibration=$(getvalues $s_calibration)
+   for ((i=1; i<=4; i++)); do
+		var="cfg_P"$i
+		sourcefile="$appdir/${!var}"
+		if ((i % 2 == 0)); then
+			s_enablerecoil="\"EnableRecoilP2\""
+			s_recoiltype="\"TriggerRecoilNormalOrRepeatP2\""
+		else
+			s_enablerecoil="\"EnableRecoil\""
+			s_recoiltype="\"TriggerRecoilNormalOrRepeat\""
+		fi
+		if [ "$(getvalues $s_enablerecoil)" = "1" ]; then 
+			if [ $(getvalues $s_recoiltype) = "1" ]; then
+				declare -g "cfg_recoiltypeP$i=auto"
+			else
+				declare -g "cfg_recoiltypeP$i=single"
+			fi
+		else
+			declare -g "cfg_recoiltypeP$i=silent"
+		fi
+   done
+   sleep 1
+    
 }
 
 
-function areyousure() {
-  dialog --defaultno --title "Are you sure?" --backtitle "$backtitle" --yesno "\nAre you sure you want to $1" 10 70 3>&1 1>&2 2>&3
-  echo $?
+#########################
+#  Uninstall
+#########################
+
+
+function linedelete(){
+  sed -i "/$1/d" $2
 }
 
 
-function applychange () { sed -i -e "/.*${2}/s/\".*\"/\"${3}\"/" ${1} ; }
+function uninstall() {
+  local yn
+  echo "This command will uninstall Sinden Autostart."
+  echo " : Proceeding with uninstall!"
+  
+  applychange "$utilscfg" "AutostartEnable"        "0"
+  echo "...Autostart disabled in widgeutils.cfg..."
+  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/autostart.sh"
+  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh"
+  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh"
+  echo "...Removed references to sindenautostart from EmulationStation files..."
+  /bin/rm -f $utilsdir"/sindenautostart.sh"
+  echo "...Deleted sindenautostart.sh..."
+  bin/rm -f "/home/$USERNAME/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
+  bin/rm -f "/home/$USERNAME/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
+  echo "...Deleted Options Menu from EmulationStation..."
+  echo "Uninstall complete."
+}
 
 
-function applyconfigchange () { sed -i -e "/.*${2}/s/value=\".*\"/value=\"${3}\"/" ${1} ; }
+#########################
+#  Recoil Reset
+#########################
 
 
-function getvalues() { grep $1 $sourcefile | grep -o 'value=".*"' | sed 's/value="//g' | sed 's/"//g' ; }
+function recoilreset(){
+  if [ $cfg_recoilreset = 1 ]; then
+    echo "Recoil settings reset"
+    applychange "$utilscfg" "RecoilTypeP1" $cfg_resettypeP1
+    applychange "$utilscfg" "RecoilTypeP2" $cfg_resettypeP2
+    applychange "$utilscfg" "RecoilTypeP3" $cfg_resettypeP3
+    applychange "$utilscfg" "RecoilTypeP4" $cfg_resettypeP4
+  else
+    echo "Recoil setting not reset"
+  fi
 
+}
 
-function onoffread(){ if [ $2 $1 = "1" ]; then echo "on"; else echo "off"; fi }
-
-
-function onoffwrite() { if [ ! $1 = "1" ]; then echo "1"; else echo "0"; fi }
 
 
 
@@ -147,31 +196,62 @@ function onoffwrite() { if [ ! $1 = "1" ]; then echo "1"; else echo "0"; fi }
 ############################
 
 
+
 function cfgprep() {
-	name_P1_norm="Player1 - NoRecoil"
-	name_P1_reco="Player1 - SingleRecoil"
-	name_P1_auto="Player1 - AutoRecoil"
-	name_P2_norm="Player2 - NoRecoil"
-	name_P2_reco="Player2 - SingleRecoil"
-	name_P2_auto="Player2 - AutoRecoil"
-	name_P3_norm="Player3 - NoRecoil"
-	name_P3_reco="Player3 - SingleRecoil"
-	name_P3_auto="Player3 - AutoRecoil"
-	name_P4_norm="Player4 - NoRecoil"
-	name_P4_reco="Player4 - SingleRecoil"
-	name_P4_auto="Player4 - AutoRecoil"
-  cfg_P1_norm=$(grabber "<P1normal>" "$utilscfg")
-  cfg_P1_reco=$(grabber "<P1recoil>" "$utilscfg")
-  cfg_P1_auto=$(grabber "<P1auto>" "$utilscfg")
-  cfg_P2_norm=$(grabber "<P2normal>" "$utilscfg")
-  cfg_P2_reco=$(grabber "<P2recoil>" "$utilscfg")
-  cfg_P2_auto=$(grabber "<P2auto>" "$utilscfg")
-  cfg_P3_norm=$(grabber "<P3normal>" "$utilscfg")
-  cfg_P3_reco=$(grabber "<P3recoil>" "$utilscfg")
-  cfg_P3_auto=$(grabber "<P3auto>" "$utilscfg")
-  cfg_P4_norm=$(grabber "<P4normal>" "$utilscfg")
-  cfg_P4_reco=$(grabber "<P4recoil>" "$utilscfg")
-  cfg_P4_auto=$(grabber "<P4auto>" "$utilscfg")
+	name_P1="Player 1"
+	name_P2="Player 2"
+	name_P3="Player 3"
+	name_P4="Player 4"
+	cfg_P1=$(grabber "<Player1>" "$utilscfg")
+	cfg_P2=$(grabber "<Player2>" "$utilscfg")
+	cfg_P3=$(grabber "<Player3>" "$utilscfg")
+	cfg_P4=$(grabber "<Player4>" "$utilscfg")
+	suffix_P1=""
+	suffix_P2="P2"
+	suffix_P3=""
+	suffix_P4="P2"
+}
+
+
+function filecheck() {
+  if ! test -f "$1"; then
+    dialog --title "$title" --backtitle "$backtitle" --msgbox "\nThe selected file doesn't exist.\n\n$1" 10 70 3>&1 1>&2 2>&3
+    echo "no"
+  else
+    echo "yes"
+  fi
+}
+
+
+function radiocomparison()  { if [ $1 = $2 ]; then echo "on"; else echo "off"; fi }
+
+
+function rangeentry(){
+  local title="$1"
+  selection=$(dialog --title "$title" --backtitle "$backtitle" --nocancel --rangebox \
+  "\nSet the value of the $1.\n\n$5(Current setting : $4)" \
+  11 50 $2 $3 $4 3>&1 1>&2 2>&3 )
+    echo $selection
+}
+
+
+function captivedialog { # usage: captivedialog [duration(s)] [height] [width] [message] [title]
+  local count=$1+1
+  local percent
+  local yn
+  (( ++count )) 
+  ( while :; do
+      cat <<-EOF      # The "-" here allows EOF later to be indented with TAB
+        $percent
+	EOF
+      (( count-=1 ))  # This can only be indented with TAB
+      percent=$((100/$1*($1+2-$count)))
+      [ $count -eq 0 ] && break
+      sleep 0.1
+    done ) |
+    dialog --title "$5" --gauge "$4" $2 $3 $percent
+    dialog --title "$5" --yes-label " OK " --no-label " Go Back " --yesno "$4" $2 $3
+    captivereturn=$?
 }
 
 
@@ -225,34 +305,19 @@ function choosefile() { # [title] [message]
   local destfile
   selfile=""
   selname=""
+  suffix=""
        
   selection=$(dialog --title "$1" --backtitle "$backtitle" --menu "$2" 22 70 18 \
-      "1"   "$name_P1_norm" \
-      "2"   "$name_P1_reco" \
-      "3"   "$name_P1_auto" \
-      "4"   "$name_P2_norm" \
-      "5"   "$name_P2_reco" \
-      "6"   "$name_P2_auto" \
-      "7"   "$name_P3_norm" \
-      "8"   "$name_P3_reco" \
-      "9"   "$name_P3_auto" \
-      "10"  "$name_P4_norm" \
-      "11"  "$name_P4_reco" \
-      "12"  "$name_P4_auto" \
+      "1"   "$name_P1" \
+      "2"   "$name_P2" \
+      "3"   "$name_P3" \
+      "4"	"$name_P4" \
       3>&1 1>&2 2>&3 )
       case "$selection" in
-          1)   choicecfg=$cfg_P1_norm ;  choicename=$name_P1_norm ;;
-          2)   choicecfg=$cfg_P1_reco ;  choicename=$name_P1_reco ;;
-          3)   choicecfg=$cfg_P1_auto ;  choicename=$name_P1_auto ;;
-          4)   choicecfg=$cfg_P2_norm ;  choicename=$name_P2_norm ;;
-          5)   choicecfg=$cfg_P2_reco ;  choicename=$name_P2_reco ;;
-          6)   choicecfg=$cfg_P2_auto ;  choicename=$name_P2_auto ;;
-          7)   choicecfg=$cfg_P3_norm ;  choicename=$name_P3_norm ;;
-          8)   choicecfg=$cfg_P3_reco ;  choicename=$name_P3_reco ;;
-          9)   choicecfg=$cfg_P3_auto ;  choicename=$name_P3_auto ;;
-          10)  choicecfg=$cfg_P4_norm ;  choicename=$name_P4_norm ;;
-          11)  choicecfg=$cfg_P4_reco ;  choicename=$name_P4_reco ;;
-          12)  choicecfg=$cfg_P4_auto ;  choicename=$name_P4_auto ;;
+          1)   choicecfg="$appdir/$cfg_P1" ;  choicename=$name_P1; suffix=$suffix_P1 ;;
+          2)   choicecfg="$appdir/$cfg_P2" ;  choicename=$name_P2; suffix=$suffix_P2 ;;
+          3)   choicecfg="$appdir/$cfg_P3" ;  choicename=$name_P3; suffix=$suffix_P3 ;;
+          4)   choicecfg="$appdir/$cfg_P4" ;  choicename=$name_P4; suffix=$suffix_P4 ;;
           *)   return ;;
         esac
      if ! [ "$choicename" = "" ]; then
@@ -268,16 +333,20 @@ function choosefile() { # [title] [message]
 }
 
 
+
+
 function settingstransfer() {
   local title
   local selection
   local yn
   local destname
   local destfile
+  oldsuffix=$suffix
   title="Destination for $1 Settings Transfer"
   choosefile "$title" "\nChoose Which config file you would like to copy these settings into.\n\nBe careful to make the correct selection and ensure that you have made backups of your configs."
   destfile=$selfile
   destname=$selname
+  newsuffix=$suffix
      if ! [ "$destname" = "" ]; then
          settingstransfer_2 "$1" "$sourcefile" "$destfile"
      else
@@ -292,25 +361,35 @@ yn=$(areyousure "go through with this transfer?")
   if [ $yn == "0" ]; then
     case "$1" in
       "Button Map") 
-         buttonprep
+         suffix=$oldsuffix
+         buttinprep2
+         suffix=$newsuffix
+         buttonprep1
          savebuttons $3
          dialog --title "$1" --backtitle "$backtitle" --no-cancel --msgbox "\nTransfer Complete"  7 22
          ;;
       "Recoil")
-         recoilprep
+         suffix=$oldsuffix
+         recoilprep2
+         suffix=$newsuffix
+         recoilprep1
          saverecoil $3
          dialog --title "$1" --backtitle "$backtitle" --no-cancel --msgbox "\nTransfer Complete"  7 22
          ;;
       "Camera")
-         cameraprep
-         savecamera $3
+	     suffix=$oldsuffix
+         cameraprep2
+         suffix=$newsuffix
+         cameraprep1
+		 savecamera $3
          dialog --title "$1" --backtitle "$backtitle" --no-cancel --msgbox "\nTransfer Complete"  7 22
          ;;
       *) dialog --msgbox "ERROR"  15 70 ;;
     esac
   else
     dialog --msgbox "\nTransfer Cancelled"  7 23
-  fi  
+  fi
+suffix=$oldsuffix
 }
 
 
@@ -342,122 +421,119 @@ function saverecoil() {
 }
 
 
-function recoilprep() {
-  s_agreeterms="\"IAgreeRecoilTermsInLicense\"" ;  v_agreeterms="0"
-  s_enablerecoil="\"EnableRecoil\""             ;  v_enablerecoil=$(getvalues $s_enablerecoil)
+function recoilprep1() {
+  s_agreeterms="\"IAgreeRecoilTermsInLicense"$suffix"\""
 
-  s_rectrigger="\"RecoilTrigger\""              ;  v_rectrigger=$(getvalues $s_rectrigger)
-  s_rectriggeros="\"RecoilTriggerOffscreen\""   ;  v_rectriggeros=$(getvalues $s_rectriggeros)
-  s_recpumpon="\"RecoilPumpActionOnEvent\""     ;  v_recpumpon=$(getvalues $s_recpumpon)
-  s_recpumpoff="\"RecoilPumpActionOffEvent\""   ;  v_recpumpoff=$(getvalues $s_recpumpoff)
+  s_rectrigger="\"RecoilTrigger"$suffix"\""
+  s_rectriggeros="\"RecoilTriggerOffscreen"$suffix"\""
+  s_recpumpon="\"RecoilPumpActionOnEvent"$suffix"\""
+  s_recpumpoff="\"RecoilPumpActionOffEvent"$suffix"\""
 
-  s_recfl="\"RecoilFrontLeft\""                 ;  v_recfl=$(getvalues $s_recfl)
-  s_recfr="\"RecoilFrontRight\""                ;  v_recfr=$(getvalues $s_recfr)
-  s_recbl="\"RecoilBackLeft\""                  ;  v_recbl=$(getvalues $s_recbl)
-  s_recbr="\"RecoilBackRight\""                 ;  v_recbr=$(getvalues $s_recbr)
+  s_recfl="\"RecoilFrontLeft"$suffix"\""
+  s_recfr="\"RecoilFrontRight"$suffix"\""
+  s_recbl="\"RecoilBackLeft"$suffix"\""
+  s_recbr="\"RecoilBackRight"$suffix"\""
 
-  s_singlestrength="\"RecoilStrength\""         ;  v_singlestrength=$(getvalues $s_singlestrength)
+  s_singlestrength="\"RecoilStrength"$suffix"\""
 
-  s_recoiltype="\"TriggerRecoilNormalOrRepeat\"";  v_recoiltype=$(getvalues $s_recoiltype)
-
-  s_autostrength="\"AutoRecoilStrength\""       ;  v_autostrength=$(getvalues $s_autostrength)
-  s_autodelay="\"AutoRecoilStartDelay\""        ;  v_autodelay=$(getvalues $s_autodelay)
-  s_autopulse="\"AutoRecoilDelayBetweenPulses\"";  v_autopulse=$(getvalues $s_autopulse)
+  s_autostrength="\"AutoRecoilStrength"$suffix"\""
+  s_autodelay="\"AutoRecoilStartDelay"$suffix"\""
+  s_autopulse="\"AutoRecoilDelayBetweenPulses"$suffix"\""
 }
+
+
+function recoilprep2() {
+  v_agreeterms="0"
+
+  v_rectrigger=$(getvalues $s_rectrigger)
+  v_rectriggeros=$(getvalues $s_rectriggeros)
+  v_recpumpon=$(getvalues $s_recpumpon)
+  v_recpumpoff=$(getvalues $s_recpumpoff)
+
+  v_recfl=$(getvalues $s_recfl)
+  v_recfr=$(getvalues $s_recfr)
+  v_recbl=$(getvalues $s_recbl)
+  v_recbr=$(getvalues $s_recbr)
+
+  v_singlestrength=$(getvalues $s_singlestrength)
+
+  v_autostrength=$(getvalues $s_autostrength)
+  v_autodelay=$(getvalues $s_autodelay)
+  v_autopulse=$(getvalues $s_autopulse)
+}
+
 
 
 function termsandcond(){ 
   local licensetxt
   local title
-  licensetxt="/home/$USERNAME/Lightgun/utils/recoiltcs.txt"
+  local yn
+  licensetxt=$utilsdir"/recoiltcs.txt"
   title="Recoil Terms and Conditions"
   dialog --defaultno --scrollbar --yes-label " Accept " --no-label " Cancel " \
     --title "$title" --backtitle "$backtitle" --yesno "$(head -c 3K $licensetxt)"  35 70 3>&1 1>&2 2>&3
   local RET=$?
   if [ $RET -eq 0 ]; then
     v_agreeterms=1
-    recoilmenuitem=3
-    return 0
+	recoilmenuitem=3
   else
-    recoilmenuitem=9
-  fi  
+    yn=$(areyousure "decline the Terms of Use?\n\nYou will not be able to use recoil for this Player's lightgun unless you accept.")
+	if [ $yn == "0" ]; then
+		v_agreeterms=0
+		recoilmenuitem=9
+	else
+		recoilmenuitem=2
+	fi
+  fi
+  applyconfigchange $sourcefile $s_agreeterms $v_agreeterms    
 }
 
 
 function recoilvalues() {
   local title
   local selection
-  title="Recoil Type and Intensity Values"
-  if [ $v_recoiltype == "0" ]; then
-    n_recoiltype="Single";
-  elif [ $v_recoiltype == "1" ]; then
-    n_recoiltype="Auto";
-  else
-    n_recoiltype="unknown"
-  fi
-  selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+  title="Recoil Intensity Values"
+  selection=$(dialog --help-button --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
     "\nChoose which setting you want to edit.\nThe current value is shown alongside the option." \
     20 70 7 \
-      "1"  "Recoil Type ($n_recoiltype)" \
-      "2"  "Single Recoil Strength ($v_singlestrength)" \
-      "3"  "Auto Recoil Strength ($v_autostrength)" \
-      "4"  "Auto Start Delay ($v_autodelay)" \
-      "5"  "Auto Pulse Delay ($v_autopulse)" \
+      "1"  "Single Recoil Strength ($v_singlestrength)" \
+      "2"  "Auto Recoil Strength ($v_autostrength)" \
+      "3"  "Auto Start Delay ($v_autodelay)" \
+      "4"  "Auto Pulse Delay ($v_autopulse)" \
       3>&1 1>&2 2>&3 )
     case "$selection" in
       1)
-        f_recoiltype
-	recoilmenuitem=5
-      ;;
-      2)
         v_singlestrength=$(rangeentry "Single-Shot Recoil" 0 100 $v_singlestrength \
           "Note that higher values drain the capacitor quicker and will take longer to recharge.\n\n")
 	recoilmenuitem=5
       ;;
-      3)
+      2)
         v_autostrength=$(rangeentry "Automatic Recoil" 0 100 $v_autostrength \
           "Note that higher values drain the capacitor quicker and will take longer to recharge.\n\n")
 	recoilmenuitem=5
       ;;
-      4)
+      3)
         v_autodelay=$(rangeentry "Automatic Recoil Start Delay" 0 30000 $v_autodelay \
           "This is the time between the first recoil and the subsequent repeated pulse\n\n")
 	recoilmenuitem=5
       ;;
-      5)
+      4)
         v_autopulse=$(rangeentry "Automatic Recoil Pulse Delay" 0 30000 $v_autopulse \
           "This is the time between the first recoil and the subsequent repeated pulse\n\nNote that more rapid recoil (lower values) can drain the capacitor quicker if it has insufficient time to recharge.\n\n")
 	recoilmenuitem=5
       ;;
       *)
-	recoilmenuitem=3
+	    if [ $? -eq 2 ]; then showhelp $helprecoilint; else recoilmenuitem=3; fi
       ;;
     esac
 }
-
-
-function f_recoiltype(){
-  local title
-  local selection
-  title="Recoil Type"
-  selection=$(dialog --title "$title" --backtitle "$backtitle" --nocancel --radiolist \
-    "\nChoose the type of recoil you want to use.\nCurrent setting : $n_recoiltype" \
-    20 70 2\
-      "1"  "Single" $(onoffread $v_recoiltype !) \
-      "2"  "Auto"   $(onoffread $v_recoiltype) \
-      3>&1 1>&2 2>&3 )
-    case "$selection" in
-      1) v_recoiltype="0" ;;
-      2) v_recoiltype="1" ;;
-    esac
-}
-
 
 function recoilbuttons(){
   local title
   local selection
   title="Buttons That Use Recoil"
-  selection=$(dialog --title "$title" --backtitle "$backtitle" --nocancel --checklist \
+  while :; do
+  selection=$(dialog --help-button --title "$title" --backtitle "$backtitle" --nocancel --checklist \
     "\nChoose which buttons will cause the recoil solenoid to fire." \
     20 70 8 \
       "1"  "Trigger"             $(onoffread $v_rectrigger) \
@@ -469,14 +545,20 @@ function recoilbuttons(){
       "7"  "Back Left"           $(onoffread $v_recbl) \
       "8"  "Back Right"          $(onoffread $v_recbr) \
       3>&1 1>&2 2>&3 )
-  if grep -q "1" <<< "$selection"; then v_rectrigger="1";   else v_rectrigger="0";   fi
-  if grep -q "2" <<< "$selection"; then v_rectriggeros="1"; else v_rectriggeros="0"; fi
-  if grep -q "3" <<< "$selection"; then v_recpumpon="1";    else v_recpumpon="0"; fi
-  if grep -q "4" <<< "$selection"; then v_recpumpoff="1";   else v_recpumpoff="0"; fi
-  if grep -q "5" <<< "$selection"; then v_recfl="1";        else v_recfl="0"; fi
-  if grep -q "6" <<< "$selection"; then v_recfr="1";        else v_recfr="0"; fi
-  if grep -q "7" <<< "$selection"; then v_recbl="1";        else v_recbl="0"; fi
-  if grep -q "8" <<< "$selection"; then v_recbr="1";        else v_recbr="0"; fi
+  case $selection in
+	*)  if [ $? -eq 2 ]; then showimage $helpbuttonsimg; else
+			if grep -q "1" <<< "$selection"; then v_rectrigger="1";   else v_rectrigger="0";   fi
+			if grep -q "2" <<< "$selection"; then v_rectriggeros="1"; else v_rectriggeros="0"; fi
+			if grep -q "3" <<< "$selection"; then v_recpumpon="1";    else v_recpumpon="0"; fi
+			if grep -q "4" <<< "$selection"; then v_recpumpoff="1";   else v_recpumpoff="0"; fi
+			if grep -q "5" <<< "$selection"; then v_recfl="1";        else v_recfl="0"; fi
+			if grep -q "6" <<< "$selection"; then v_recfr="1";        else v_recfr="0"; fi
+			if grep -q "7" <<< "$selection"; then v_recbl="1";        else v_recbl="0"; fi
+			if grep -q "8" <<< "$selection"; then v_recbr="1";        else v_recbr="0"; fi
+			return
+		 fi
+	esac
+  done
 }
 
 
@@ -485,22 +567,20 @@ function recoilmenu(){
   local selection
   local yn
   title="Recoil Settings"
-  selection=$(dialog --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
+  selection=$(dialog --help-button --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
       "\n$sourcename\n\n$sourcefile\n\nWhich recoil settings would you like to view and edit?" \
       20 70 6 \
-      "1"  "Enable/disable recoil ($(onoffread $v_enablerecoil))" \
-      "2"  "Enable/disable which buttons should use recoil." \
-      "3"  "Recoil type and intensity." \
-      "4"  "Transfer this file's settings to another config file" \
-      "5"  "Save changes and exit." \
-      "6"  "Withdraw agreement to the terms of use." \
+      "1"  "Enable/disable which buttons should use recoil" \
+      "2"  "Recoil intensity settings" \
+      "3"  "Transfer this file's settings to another config file" \
+      "4"  "Save changes and exit" \
+      "5"  "Withdraw agreement to the terms of use" \
       3>&1 1>&2 2>&3 )
         case "$selection" in
-          1) v_enablerecoil=$(onoffwrite $v_enablerecoil) ;;
-          2) recoilmenuitem=4 ;;
-          3) recoilmenuitem=5 ;;
-          4) settingstransfer "Recoil" ;;
-          5) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
+          1) recoilmenuitem=4 ;;
+          2) recoilmenuitem=5 ;;
+          3) settingstransfer "Recoil" ;;
+          4) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
              if [ $yn == "0" ]; then
                saverecoil $sourcefile
                dialog --backtitle "$backtitle" --title "Save Complete" --msgbox "\nRecoil changes have been saved for $sourcename." 12 78
@@ -508,16 +588,21 @@ function recoilmenu(){
              else
                recoilmenuitem=3
              fi ;;
-          6) yn=$(areyousure "withdraw your agreement to the terms of the licence? This will disable recoil functionality.")
+          5) yn=$(areyousure "withdraw your agreement to the terms of the licence? This will disable recoil functionality.")
              if [ $yn == "0" ]; then
                applyconfigchange $sourcefile $s_agreeterms 0 
-               recoilprep
+               recoilprep1
+               recoilprep2
                saverecoil
                recoilmenuitem=2
              else
                recoilmenuitem=3
              fi ;;
-          *) recoilmenuitem=9
+          *) if [ $? -eq 2 ]; then
+				showhelp $helprecoil;
+			 else 
+				recoilmenuitem=9
+			 fi
         esac
 }
 
@@ -542,7 +627,8 @@ function recoilmain(){
   while ! [[ $recoilmenuitem -eq 9 ]]; do
     case "$recoilmenuitem" in
       0) recoilchoosefile ;;
-      1) recoilprep
+      1) recoilprep1
+	     recoilprep2
          recoilmenuitem=2 ;;
       2) termsandcond ;;
       3) recoilmenu ;;
@@ -556,20 +642,31 @@ function recoilmain(){
 
 
 
+
 #########################
 #  Camera
 #########################
 
 
-function cameraprep() {
-  s_brightness="\"CameraBrightness\""      ;  v_brightness=$(getvalues $s_brightness)
-  s_contrast="\"CameraContrast\""          ;  v_contrast=$(getvalues $s_contrast)
-  s_expauto="\"CameraExposureAuto\""       ;  v_expauto=$(getvalues $s_expauto)
-  s_exposure="\"CameraExposure\""          ;  v_exposure=$(getvalues $s_exposure)
-  s_colourrange="\"ColourMatchRange\""     ;  v_colourrange=$(getvalues $s_colourrange)
-  #s_saturation="\"CameraSaturation\""      ;  v_saturation=$(getvalues $s_saturation)
-  #s_whiteauto="\"CameraWhiteBalanceAuto\"" ;  v_whiteauto=$(getvalues $s_whiteauto)
-  #s_whitebalance="\"CameraWhiteBalance\""  ;  v_whitebalance=$(getvalues $s_whitebalance)
+function cameraprep1() {
+  s_brightness="\"CameraBrightness"$suffix"\""
+  s_contrast="\"CameraContrast"$suffix"\""
+  s_expauto="\"CameraExposureAuto"$suffix"\""
+  s_exposure="\"CameraExposure"$suffix"\""
+  s_colourrange="\"ColourMatchRange\""
+  s_camerares="\"CameraRes\""
+  s_matchpoint="\"MatchOnlyWherePointing\""
+  s_gangsta="\"GangstaSetting\""
+}
+function cameraprep2() {
+  v_brightness=$(getvalues $s_brightness)
+  v_contrast=$(getvalues $s_contrast)
+  v_expauto=$(getvalues $s_expauto)
+  v_exposure=$(getvalues $s_exposure)
+  v_colourrange=$(getvalues $s_colourrange)
+  v_camerares=$(getvalues $s_camerares)
+  v_matchpoint=$(getvalues $s_matchpoint)
+  v_gangsta=$(getvalues $s_gangsta)
 }
 
 
@@ -579,9 +676,9 @@ function savecamera() {
   applyconfigchange $1 $s_expauto        $v_expauto   
   applyconfigchange $1 $s_exposure       $v_exposure  
   applyconfigchange $1 $s_colourrange    $v_colourrange
-  #applyconfigchange $1 $s_saturation     $v_saturation
-  #applyconfigchange $1 $s_whiteauto      $v_whiteauto  
-  #applyconfigchange $1 $s_whitebalance   $v_whitebalance
+  applyconfigchange $1 $s_camerares		 $v_camerares
+  applyconfigchange $1 $s_matchpoint     $v_matchpoint  
+  applyconfigchange $1 $s_gangsta   	 $v_gangsta
 }
 
 
@@ -589,38 +686,61 @@ function cameramenu() {
   local title
   local selection
   local yn
-  title="Camera Settings"
-  if [ $v_expauto = "1" ]; then v_exposure=""; fi
-  selection=$(dialog --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
-    "\nChoose which setting you want to edit.\nThe current value is shown alongside the option." \
-    20 70 10 \
-      "1"  "Brightness ($v_brightness)" \
-      "2"  "Contrast ($v_contrast)" \
-      "3"  "Auto Exposure ($(onoffread $v_expauto))" \
-      "4"  "Manual Exposure ($v_exposure)" \
-      "5"  "Colour Match Range ($v_colourrange)" \
-      "6"  "Transfer this file's settings to another config file" \
-      "7"  "Save changes" \
-      3>&1 1>&2 2>&3 )
-    case "$selection" in
-      1) v_brightness=$(rangeentry "Camera Brightness" 0 255 $v_brightness) ;;
-      2) v_contrast=$(rangeentry "Camera Contrast" 0 127 $v_contrast) ;;
-      3) v_expauto=$(onoffwrite $v_expauto) ;;
-      4) if [ $v_expauto = "0" ]; then 
-           if [ -z "$v_exposure" ]; then v_exposure="-5"; fi
-           v_exposure=$(rangeentry "Camera Manual Exposure" -9 0 $v_exposure "This value will be blank if Auto Exposure is on.\n\n")
-         fi ;;
-      5) v_colourrange=$(rangeentry "Camera Colour Match Range" 0 512 $v_colourrange "Slight increases to this value can sometimes help with border recognition.\n\n") ;;
-      6) settingstransfer "Camera" ;;
-      7) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
-             if [ $yn == "0" ]; then
-               savecamera $sourcefile
-               dialog --backtitle "$backtitle" --title "Save Complete" --msgbox "\nCamera changes have been saved for $sourcename." 12 78
-               cameramenuitem=9
-             fi ;;
-      *) cameramenuitem=9
-         return ;;
-    esac
+  
+  while :; do
+	  local menu_items
+	  menu_items=()
+	  menu_items+=("1"  "Brightness ($v_brightness)")
+	  menu_items+=("2"  "Contrast ($v_contrast)")
+	  menu_items+=("3"  "Auto Exposure ($(onoffread $v_expauto))")
+	  menu_items+=("4"  "Manual Exposure ($v_exposure)")
+	  menu_items+=("5"  "Colour Match Range ($v_colourrange)")
+	  menu_items+=("6"  "Match Only Where Pointing ($(onoffread $v_matchpoint))")
+	  menu_items+=("7"  "Camera Resolution ($v_camerares)")
+	  case "$v_gangsta" in
+		"1") menu_items+=("8"  "Gangsta Setting (left handed)") ;;
+		"2") menu_items+=("8"  "Gangsta Setting (right handed)") ;;
+		*) menu_items+=("8"  "Gangsta Setting ()") ;;
+	  esac
+	  menu_items+=("9"  "Transfer this file's settings to another config file")
+	  menu_items+=("0"  "Save changes")
+		  
+	  
+	  
+	  title="Camera Settings"
+	  if [ $v_expauto = "1" ]; then v_exposure=""; fi
+	  selection=$(dialog --help-button --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
+		"\nChoose which setting you want to edit.\nThe current value is shown alongside the option." \ 20 70 10 "${menu_items[@]}" 3>&1 1>&2 2>&3 )
+		case "$selection" in
+		  1) v_brightness=$(rangeentry "Camera Brightness" 0 255 $v_brightness) ;;
+		  2) v_contrast=$(rangeentry "Camera Contrast" 0 127 $v_contrast) ;;
+		  3) v_expauto=$(onoffwrite $v_expauto) ;;
+		  4) if [ $v_expauto = "0" ]; then 
+			   if [ -z "$v_exposure" ]; then v_exposure="-5"; fi
+			   v_exposure=$(rangeentry "Camera Manual Exposure" -9 0 $v_exposure "This value will be blank if Auto Exposure is on.\n\n")
+			 fi ;;
+		  5) v_colourrange=$(rangeentry "Camera Colour Match Range" 0 512 $v_colourrange "Slight increases to this value can sometimes help with border recognition.\n\n") ;;
+		  6) v_matchpoint=$(onoffwrite $v_matchpoint) ;;
+		  7) if [ $v_camerares = "640,480" ]; then 
+				v_camerares="320,240"
+				else v_camerares="640,480"
+			 fi;;  
+		  8) if [ $v_gangsta = "2" ]; then 
+			 	v_gangsta="1"
+				else v_gangsta="2"
+			 fi;;  
+		  9) settingstransfer "Camera" ;;
+		  0) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
+				 if [ $yn == "0" ]; then
+				   savecamera $sourcefile
+				   dialog --backtitle "$backtitle" --title "Save Complete" --msgbox "\nCamera changes have been saved for $sourcename." 12 78
+				   cameramenuitem=9
+				 fi ;;
+		  *) if [ $? -eq 2 ]; then showhelp $helpcamera;
+			 else cameramenuitem=9; return
+			 fi ;;
+		esac
+	done
 }
 
 
@@ -644,7 +764,8 @@ function cameramain(){
   while ! [[ $cameramenuitem -eq 9 ]]; do
     case "$cameramenuitem" in
       0) camerachoosefile ;;
-      1) cameraprep
+      1) cameraprep1
+	     cameraprep2
          cameramenuitem=5 ;;
       5) cameramenu;;
      9|*) return ;;
@@ -653,60 +774,105 @@ function cameramain(){
 }
 
 
-
 #########################
 #  Buttons
 #########################
 
 
-function buttonprep() {
-  s_ontrigger="\"ButtonTrigger\""           ;   v_ontrigger=$(getvalues $s_ontrigger)
-  s_onpump="\"ButtonPumpAction\""           ;   v_onpump=$(getvalues $s_onpump)
-  s_onfl="\"ButtonFrontLeft\""              ;   v_onfl=$(getvalues $s_onfl)
-  s_onbl="\"ButtonRearLeft\""               ;   v_onbl=$(getvalues $s_onbl)
-  s_onfr="\"ButtonFrontRight\""             ;   v_onfr=$(getvalues $s_onfr)
-  s_onbr="\"ButtonRearRight\""              ;   v_onbr=$(getvalues $s_onbr)
-  s_onup="\"ButtonUp\""                     ;   v_onup=$(getvalues $s_onup)
-  s_ondown="\"ButtonDown\""                 ;   v_ondown=$(getvalues $s_ondown)
-  s_onleft="\"ButtonLeft\""                 ;   v_onleft=$(getvalues $s_onleft)
-  s_onright="\"ButtonRight\""               ;   v_onright=$(getvalues $s_onright)
+function buttonprep1() {
+  s_ontrigger="\"ButtonTrigger"$suffix"\""
+  s_onpump="\"ButtonPumpAction"$suffix"\""
+  s_onfl="\"ButtonFrontLeft"$suffix"\""
+  s_onbl="\"ButtonRearLeft"$suffix"\""
+  s_onfr="\"ButtonFrontRight"$suffix"\""
+  s_onbr="\"ButtonRearRight"$suffix"\""
+  s_onup="\"ButtonUp"$suffix"\""
+  s_ondown="\"ButtonDown"$suffix"\""
+  s_onleft="\"ButtonLeft"$suffix"\""
+  s_onright="\"ButtonRight"$suffix"\""
 
-  s_onmodtrigger="\"TriggerMod\""           ;   v_onmodtrigger=$(getvalues $s_onmodtrigger)
-  s_onmodpump="\"PumpActionMod\""           ;   v_onmodpump=$(getvalues $s_onmodpump)
-  s_onmodfl="\"FrontLeftMod\""              ;   v_onmodfl=$(getvalues $s_onmodfl)
-  s_onmodbl="\"RearLeftMod\""               ;   v_onmodbl=$(getvalues $s_onmodbl)
-  s_onmodfr="\"FrontRightMod\""             ;   v_onmodfr=$(getvalues $s_onmodfr)
-  s_onmodbr="\"RearRightMod\""              ;   v_onmodbr=$(getvalues $s_onmodbr)
-  s_onmodup="\"UpMod\""                     ;   v_onmodup=$(getvalues $s_onmodup)
-  s_onmoddown="\"DownMod\""                 ;   v_onmoddown=$(getvalues $s_onmoddown)
-  s_onmodleft="\"LeftMod\""                 ;   v_onmodleft=$(getvalues $s_onmodleft)
-  s_onmodright="\"RightMod\""               ;   v_onmodright=$(getvalues $s_onmodright)
+  s_onmodtrigger="\"TriggerMod"$suffix"\""
+  s_onmodpump="\"PumpActionMod"$suffix"\""
+  s_onmodfl="\"FrontLeftMod"$suffix"\""
+  s_onmodbl="\"RearLeftMod"$suffix"\""
+  s_onmodfr="\"FrontRightMod"$suffix"\""
+  s_onmodbr="\"RearRightMod"$suffix"\""
+  s_onmodup="\"UpMod"$suffix"\""
+  s_onmoddown="\"DownMod"$suffix"\""
+  s_onmodleft="\"LeftMod"$suffix"\""
+  s_onmodright="\"RightMod"$suffix"\""
 
-  s_offtrigger="\"ButtonTriggerOffscreen\"" ;   v_offtrigger=$(getvalues $s_offtrigger)
-  s_offpump="\"ButtonPumpActionOffscreen\"" ;   v_offpump=$(getvalues $s_offpump)
-  s_offfl="\"ButtonFrontLeftOffscreen\""    ;   v_offfl=$(getvalues $s_offfl)
-  s_offbl="\"ButtonRearLeftOffscreen\""     ;   v_offbl=$(getvalues $s_offbl)
-  s_offfr="\"ButtonFrontRightOffscreen\""   ;   v_offfr=$(getvalues $s_offfr)
-  s_offbr="\"ButtonRearRightOffscreen\""    ;   v_offbr=$(getvalues $s_offbr)
-  s_offup="\"ButtonUpOffscreen\""           ;   v_offup=$(getvalues $s_offup)
-  s_offdown="\"ButtonDownOffscreen\""       ;   v_offdown=$(getvalues $s_offdown)
-  s_offleft="\"ButtonLeftOffscreen\""       ;   v_offleft=$(getvalues $s_offleft)
-  s_offright="\"ButtonRightOffscreen\""     ;   v_offright=$(getvalues $s_offright)
+  s_offtrigger="\"ButtonTriggerOffscreen"$suffix"\""
+  s_offpump="\"ButtonPumpActionOffscreen"$suffix"\""
+  s_offfl="\"ButtonFrontLeftOffscreen"$suffix"\""
+  s_offbl="\"ButtonRearLeftOffscreen"$suffix"\""
+  s_offfr="\"ButtonFrontRightOffscreen"$suffix"\""
+  s_offbr="\"ButtonRearRightOffscreen"$suffix"\""
+  s_offup="\"ButtonUpOffscreen"$suffix"\""
+  s_offdown="\"ButtonDownOffscreen"$suffix"\""
+  s_offleft="\"ButtonLeftOffscreen"$suffix"\""
+  s_offright="\"ButtonRightOffscreen"$suffix"\""
 
-  s_offmodtrigger="\"TriggerOffscreenMod\"" ;   v_offmodtrigger=$(getvalues $s_offmodtrigger)
-  s_offmodpump="\"PumpActionOffscreenMod\"" ;   v_offmodpump=$(getvalues $s_offmodpump)
-  s_offmodfl="\"FrontLeftOffscreenMod\""    ;   v_offmodfl=$(getvalues $s_offmodfl)
-  s_offmodbl="\"RearLeftOffscreenMod\""     ;   v_offmodbl=$(getvalues $s_offmodbl)
-  s_offmodfr="\"FrontRightOffscreenMod\""   ;   v_offmodfr=$(getvalues $s_offmodfr)
-  s_offmodbr="\"RearRightOffscreenMod\""    ;   v_offmodbr=$(getvalues $s_offmodbr)
-  s_offmodup="\"UpOffscreenMod\""           ;   v_offmodup=$(getvalues $s_offmodup)
-  s_offmoddown="\"DownOffscreenMod\""       ;   v_offmoddown=$(getvalues $s_offmoddown)
-  s_offmodleft="\"LeftOffscreenMod\""       ;   v_offmodleft=$(getvalues $s_offmodleft)
-  s_offmodright="\"RightOffscreenMod\""     ;   v_offmodright=$(getvalues $s_offmodright)
-
-  s_enableoffscreen="\"OffscreenReload\""   ;   v_enableoffscreen=$(getvalues $s_enableoffscreen=)
+  s_offmodtrigger="\"TriggerOffscreenMod"$suffix"\""
+  s_offmodpump="\"PumpActionOffscreenMod"$suffix"\""
+  s_offmodfl="\"FrontLeftOffscreenMod"$suffix"\""
+  s_offmodbl="\"RearLeftOffscreenMod"$suffix"\""
+  s_offmodfr="\"FrontRightOffscreenMod"$suffix"\""
+  s_offmodbr="\"RearRightOffscreenMod"$suffix"\""
+  s_offmodup="\"UpOffscreenMod"$suffix"\""
+  s_offmoddown="\"DownOffscreenMod"$suffix"\""
+  s_offmodleft="\"LeftOffscreenMod"$suffix"\""
+  s_offmodright="\"RightOffscreenMod"$suffix"\""
 }
 
+
+
+function buttonprep2() {
+  v_ontrigger=$(getvalues $s_ontrigger)
+  v_onpump=$(getvalues $s_onpump)
+  v_onfl=$(getvalues $s_onfl)
+  v_onbl=$(getvalues $s_onbl)
+  v_onfr=$(getvalues $s_onfr)
+  v_onbr=$(getvalues $s_onbr)
+  v_onup=$(getvalues $s_onup)
+  v_ondown=$(getvalues $s_ondown)
+  v_onleft=$(getvalues $s_onleft)
+  v_onright=$(getvalues $s_onright)
+
+  v_onmodtrigger=$(getvalues $s_onmodtrigger)
+  v_onmodpump=$(getvalues $s_onmodpump)
+  v_onmodfl=$(getvalues $s_onmodfl)
+  v_onmodbl=$(getvalues $s_onmodbl)
+  v_onmodfr=$(getvalues $s_onmodfr)
+  v_onmodbr=$(getvalues $s_onmodbr)
+  v_onmodup=$(getvalues $s_onmodup)
+  v_onmoddown=$(getvalues $s_onmoddown)
+  v_onmodleft=$(getvalues $s_onmodleft)
+  v_onmodright=$(getvalues $s_onmodright)
+
+  v_offtrigger=$(getvalues $s_offtrigger)
+  v_offpump=$(getvalues $s_offpump)
+  v_offfl=$(getvalues $s_offfl)
+  v_offbl=$(getvalues $s_offbl)
+  v_offfr=$(getvalues $s_offfr)
+  v_offbr=$(getvalues $s_offbr)
+  v_offup=$(getvalues $s_offup)
+  v_offdown=$(getvalues $s_offdown)
+  v_offleft=$(getvalues $s_offleft)
+  v_offright=$(getvalues $s_offright)
+
+  v_offmodtrigger=$(getvalues $s_offmodtrigger)
+  v_offmodpump=$(getvalues $s_offmodpump)
+  v_offmodfl=$(getvalues $s_offmodfl)
+  v_offmodbl=$(getvalues $s_offmodbl)
+  v_offmodfr=$(getvalues $s_offmodfr)
+  v_offmodbr=$(getvalues $s_offmodbr)
+  v_offmodup=$(getvalues $s_offmodup)
+  v_offmoddown=$(getvalues $s_offmoddown)
+  v_offmodleft=$(getvalues $s_offmodleft)
+  v_offmodright=$(getvalues $s_offmodright)
+
+}
 
 function savebuttons() { 
   applyconfigchange $1 $s_ontrigger $v_ontrigger
@@ -764,7 +930,7 @@ function buttonselector(){
       "1"   "MOUSE 1"         "$(radiocomparison $2 "1")" \
       "2"   "MOUSE 2"         "$(radiocomparison $2 "2")" \
       "3"   "MOUSE 3"         "$(radiocomparison $2 "3")" \
-      "7"   "Left ALT"        "$(radiocomparison $2 "7")" \
+      "7"   "Left ALT + b"        "$(radiocomparison $2 "7")" \
       "8"   "Num 0"           "$(radiocomparison $2 "8")" \
       "9"   "Num 1"           "$(radiocomparison $2 "9")" \
       "10"  "Num 2"           "$(radiocomparison $2 "10")" \
@@ -840,7 +1006,7 @@ function buttonsonscreen() {
   local selection
   title="Button Mapping for Normal (On-Screen) Actions"
   while :; do
-    selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+    selection=$(dialog --help-button --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
       "\nChoose which button you want to edit.\nThe current value is shown alongside the option." \
       20 70 10 \
         "1"  "Trigger ($v_ontrigger)" \
@@ -865,7 +1031,7 @@ function buttonsonscreen() {
       8) v_ondown=$(buttonselector "D-Pad Down (normal)" $v_ondown) ;;
       9) v_onleft=$(buttonselector "D-Pad Left (normal)" $v_onleft) ;;
       10) v_onright=$(buttonselector "D-Pad Right (normal)" $v_onright) ;;
-      *) return ;;
+      *)  if [ $? -eq 2 ]; then showimage $helpbuttonsimg; else return; fi;;
     esac
   done
 }
@@ -876,7 +1042,7 @@ function buttonsoffscreen() {
   local selection
   title="Button Mapping for Off-Screen Actions"
   while :; do
-    selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
+    selection=$(dialog --help-button --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
       "\nChoose which button you want to edit.\nThe current value is shown alongside the option." \
       20 70 10 \
         "1"  "Trigger ($v_offtrigger)" \
@@ -901,7 +1067,7 @@ function buttonsoffscreen() {
       8) v_offdown=$(buttonselector "D-Pad Down (off-screen)" $v_offdown) ;;
       9) v_offleft=$(buttonselector "D-Pad Left (off-screen)" $v_offleft) ;;
       10) v_offright=$(buttonselector "D-Pad Right (off-screen)" $v_offright) ;;
-      *) return ;;
+      *)  if [ $? -eq 2 ]; then showimage $helpbuttonsimg; else return; fi;;
     esac
   done
 }
@@ -912,21 +1078,19 @@ function buttononoffmenu(){
   local selection
   local yn
   title="Button Mapping On/Off-Screen Group Selection"
-  selection=$(dialog --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
+  selection=$(dialog --help-button --cancel-label " Quit without saving " --title "$title" --backtitle "$backtitle" --menu \
       "\nWhich button settings group would you like to view and edit?" \
       20 70 5 \
       "1"  "Normal button actions" \
-      "2"  "Enable/Disable off-screen actions ($(onoffread $v_enableoffscreen))" \
-      "3"  "Off-screen button actions" \
-      "4"  "Transfer this file's settings to another config file" \
-      "5"  "Save changes and exit" \
+      "2"  "Off-screen button actions" \
+      "3"  "Transfer this file's settings to another config file" \
+      "4"  "Save changes and exit" \
       3>&1 1>&2 2>&3 )
         case "$selection" in
           1) buttonsonscreen ;;
-          2) v_enableoffscreen=$(onoffwrite $v_enableoffscreen) ;;
-          3) buttonsoffscreen ;;
-          4) settingstransfer "Button Map" ;;
-          5) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
+          2) buttonsoffscreen ;;
+          3) settingstransfer "Button Map" ;;
+          4) yn=$(areyousure "overwrite your $sourcename config file with the selections you have made?")
              if [ $yn == "0" ]; then
                savebuttons $sourcefile
                dialog --backtitle "$backtitle" --title "Save Complete" --msgbox "\nButton mapping changes have been saved for $sourcename." 12 78
@@ -934,7 +1098,12 @@ function buttononoffmenu(){
              else
                buttonmenuitem=2
              fi ;;
-          *) buttonmenuitem=9; return ;;
+          *) if [ $? -eq 2 ]; then
+				showhelp $helpbuttons;
+			 else
+				buttonmenuitem=9;
+				return
+			 fi ;;
         esac
 }
 
@@ -958,12 +1127,12 @@ function buttonmain(){
   buttonmenuitem=8
   while ! [[ $buttonmenuitem -eq 9 ]]; do
     case "$buttonmenuitem" in
-#      0) buttonchoosegroup ;;
       0) buttonchoosefile ;;
-      1) buttonprep
+      1) buttonprep1
+	     buttonprep2
          buttonmenuitem=2 ;;
       2) buttononoffmenu;;
-      8) captivedialog 50 15 50  "\nEditing the button mapping may lead to loss of functions in games if they have been pre-configured with the existing settings in mind.\n\nProceed only if you have made backups of your configs and you know what you are doing," "CAUTION!"
+      8) captivedialog 50 15 50  "\nEditing the button mapping may lead to loss of functions in games if they have been pre-configured with the existing settings in mind.\n\nProceed only if you have made backups of your configs and you know what you are doing." "CAUTION!"
          case "$captivereturn" in
            0) ;;
            1|*) return ;;
@@ -988,7 +1157,7 @@ function restorebackup() {
   local originalfile
   local originalname
   title="Restore a Backup"
-  choosefile "$title" "\nWhich $1 config file would you like to restore from backup?"
+  choosefile "$title" "\nWhich $1 config file would you like to restore from backup?\nBe aware that Players 1&2 share a config file, as do Players 3&4."
   originalfile=$selfile
   originalname=$selname
   if ! [ "$originalname" = "" ] && [ $(filecheck $originalfile.backup) == "yes" ]; then
@@ -1009,7 +1178,7 @@ function makebackup(){
   local originalfile
   local originalname
   title="Make a Backup"
-  choosefile "$title" "\nWhich $1 config file would you like to backup?"
+  choosefile "$title" "\nWhich $1 config file would you like to backup?\nBe aware that Players 1&2 share a config file, as do Players 3&4."
   originalfile=$selfile
   originalname=$selname
   if ! [ "$originalname" = "" ] && [ $(filecheck $originalfile) == "yes" ]; then
@@ -1089,6 +1258,8 @@ function cfgeditmenu(){
 
 
 
+
+
 ##############################
 ############  MAIN  #########
 ############################
@@ -1122,7 +1293,7 @@ function run_pedaltest() {
 	local PEDAL_BTN=()
 	local device_file=${pedal_files[$1]}
 	
-	devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
+	#local devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
 			
 	dialog --title "$title" --backtitle "$backtitle" --infobox \
 	"\n   Press the pedal\n\n(You have 10 seconds)" 7 25 3>&1 1>&2 2>&3
@@ -1172,46 +1343,6 @@ function pedaltest_menu(){
 }
 
 
-function savechanges() {
-  local yn
-  yn=$(areyousure "save these changes?")
-  if [ $yn == "0" ]; then
-
-
-  local duration=10
-  local count=$duration+1
-  local percent
-  local yn
-  (( ++count )) 
-  ( while :; do
-      cat <<-EOF      # The "-" here allows EOF later to be indented with TAB
-        $percent
-	EOF
-      (( count-=1 ))  # This can only be indented with TAB
-      percent=$((100/$duration*($duration+1-$count)))
-      [ $count -eq 0 ] && break
-      sleep 0.1
-    done ) |
-    dialog --title "Saving..." --gauge "$4" 5 30 $percent
-
-    applychange "$utilscfg" "AutostartEnable"         $cfg_enable           
-    applychange "$utilscfg" "RecoilTypeP1"            $cfg_recoiltypeP1     
-    applychange "$utilscfg" "RecoilTypeP2"            $cfg_recoiltypeP2     
-    applychange "$utilscfg" "RecoilTypeP3"            $cfg_recoiltypeP3     
-    applychange "$utilscfg" "RecoilTypeP4"            $cfg_recoiltypeP4     
-    applychange "$utilscfg" "RecoilReset"             $cfg_recoilreset
-    applychange "$utilscfg" "ResetTypeP1"             $cfg_resettypeP1     
-    applychange "$utilscfg" "ResetTypeP2"             $cfg_resettypeP2     
-    applychange "$utilscfg" "ResetTypeP3"             $cfg_resettypeP3     
-    applychange "$utilscfg" "ResetTypeP4"             $cfg_resettypeP4     
-    applychange "$utilscfg" "LightgunCollectionFile" "$cfg_collectionfile"
-	applychange "$utilscfg" "SetOSReload" 			 "$(echo ${cfg_osr_list[@]})"
-
-  else
-    dialog --title "SAVE" --infobox "CANCELLED" 3 13
-  fi
-
-}
 
 
 function comparetypes(){
@@ -1221,7 +1352,6 @@ function comparetypes(){
     grecoil="individual"
   fi
 }
-
 
 function compareresettypes(){
   if [ "$cfg_resettypeP1" = "$cfg_resettypeP2" ] && [ "$cfg_resettypeP2" = "$cfg_resettypeP3" ] && [ "$cfg_resettypeP3" = "$cfg_resettypeP4" ]; then
@@ -1240,6 +1370,7 @@ function set_recoil(){
     "single") export "$var=auto"	;;
     "auto"|*) export "$var=silent"	;;
   esac
+  comparetypes
 }
 
 
@@ -1252,7 +1383,6 @@ function set_reset(){
     "auto"|*) export "$var=silent"	;;
   esac
 }
-
 
 function set_global(){
   case "$grecoil" in
@@ -1303,6 +1433,79 @@ function set_reset_global(){
 }
 
 
+
+function savechanges() {
+  local yn
+  yn=$(areyousure "save these changes?")
+  if [ $yn == "0" ]; then
+    local duration=10
+    local count=$duration+1
+    local percent
+    (( ++count )) 
+  ( while :; do
+      cat <<-EOF      # The "-" here allows EOF later to be indented with TAB
+        $percent
+	EOF
+      (( count-=1 ))  # This can only be indented with TAB
+      percent=$((100/$duration*($duration+1-$count)))
+      [ $count -eq 0 ] && break
+      sleep 0.1
+    done ) |
+	dialog --title "Saving..." --gauge "$4" 5 30 $percent
+
+    applychange "$utilscfg" "AutostartEnable"         $cfg_enable           
+    applychange "$utilscfg" "RecoilReset"             $cfg_recoilreset
+    applychange "$utilscfg" "ResetTypeP1"             $cfg_resettypeP1     
+    applychange "$utilscfg" "ResetTypeP2"             $cfg_resettypeP2     
+    applychange "$utilscfg" "ResetTypeP3"             $cfg_resettypeP3     
+    applychange "$utilscfg" "ResetTypeP4"             $cfg_resettypeP4     
+    applychange "$utilscfg" "LightgunCollectionFile"  $cfg_collectionfile
+	applychange "$utilscfg" "SetOSReload" 			 "$(echo ${cfg_osr_list[@]})"
+	
+	applyconfigchange "$appdir/$cfg_P1" $s_calibration $cfg_calibration
+	applyconfigchange "$appdir/$cfg_P3" $s_calibration $cfg_calibration
+	
+	cfg_collectionfile=$(grabber "<LightgunCollectionFile>" "$utilscfg")
+  
+	for ((i=1; i<=4; i++)); do
+		var="cfg_P"$i
+		sourcefile="$appdir/${!var}"
+		if ((i % 2 == 0)); then
+			s_enablerecoil="\"EnableRecoilP2\""
+			s_recoiltype="\"TriggerRecoilNormalOrRepeatP2\""
+		else
+			s_enablerecoil="\"EnableRecoil\""
+			s_recoiltype="\"TriggerRecoilNormalOrRepeat\""
+		fi
+
+		var="cfg_recoiltypeP$i"
+		case "${!var}" in
+			"auto")
+				v_enablerecoil="1";
+				v_recoiltype="1";
+				;;
+			"single")
+				v_enablerecoil="1";
+				v_recoiltype="0";
+				;;
+			"silent"|*)
+				v_enablerecoil="0";
+				v_recoiltype="0";
+				;;
+		esac
+		applyconfigchange $sourcefile $s_enablerecoil $v_enablerecoil
+		applyconfigchange $sourcefile $s_recoiltype   $v_recoiltype
+   done
+
+	
+  else
+    dialog --title "SAVE" --infobox "CANCELLED" 3 13
+  fi
+
+}
+
+
+
 function set_collectionfile(){
   local title="Set your Lightgun Games Collection file."
   local selection
@@ -1327,19 +1530,30 @@ function set_collectionfile(){
 }
 
 
+
 function manual_start() {
 
-  if [ $cfg_recoiltypeP1 = "off" ] && [ $cfg_recoiltypeP2 = "off" ] && [ $cfg_recoiltypeP3 = "off" ] && [ $cfg_recoiltypeP4 = "off" ]; then
-    dialog --title "MANUAL START" --infobox "\n Unable to start lightgun process \nas no lightguns have been selected\n" 6 38
-  else
-    cfg_enable="0"
+	cfg_enable="0"
     applychange "$utilscfg" "AutostartEnable" $cfg_enable
     stopguns
-    autostart
-    manualstart=true
-    dialog --title "MANUAL START" --infobox "\nPersistent lightgun process started\n       Autostart deactivated       \n" 6 39
-  fi
-  sleep 4
+	gunsexist
+	cd $appdir
+	if [ -n "${lightgun_files[0]}" ] || [ -n "${lightgun_files[1]}" ]; then
+		mono-service "${cfg_P1%.config}"
+		manualstart=true
+	fi
+	if [ -n "${lightgun_files[2]}" ] || [ -n "${lightgun_files[3]}" ]; then
+		mono-service "${cfg_P3%.config}"
+		manualstart=true	
+	fi
+	sleep 5
+	
+	if "$manualstart"; then 
+		dialog --title "MANUAL START" --infobox "\nPersistent lightgun process started\n       Autostart deactivated       \n" 6 39
+	else
+		dialog --title "MANUAL START" --infobox "\n Unable to start lightgun process \nas no lightguns have been selected\n" 6 38
+	fi
+	sleep 4
 }
 
 
@@ -1352,17 +1566,21 @@ function manual_stop() {
 
 }
 
-
 function run_test(){
-#  clear
-  local devNum
+  clear
+  local var
   stopguns
   manualstart=false
-  var="cfg_P"$1"_norm"
-  cd "${!var%/*}"
+  var="cfg_P"$1
+  sourcefile="${!var}"
+  cfg_calibration=$(getvalues $s_calibration)
+  #applyconfigchange "${!var}" $s_calibration "1"
+  cd $appdir
   mono "${!var%.config}" sdl 30
   sleep 3
+  #applyconfigchange "${!var}" $s_calibration $cfg_calibration
 }
+
 
 
 function test_menu(){
@@ -1377,10 +1595,18 @@ function test_menu(){
 		while :; do
 			gunsexist
 			menu_items=()
-			if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1" "Player 1"); fi
-			if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2" "Player 2"); fi
-			if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3" "Player 3"); fi
-			if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4" "Player 4"); fi
+			if [ -n "${lightgun_files[0]}" ] && [ -n "${lightgun_files[1]}" ]; then
+				menu_items+=("1" "Players 1 & 2")
+			else
+				if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1" "Player 1"); fi
+				if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2" "Player 2"); fi
+			fi
+			if [ -n "${lightgun_files[2]}" ] && [ -n "${lightgun_files[3]}" ]; then
+				menu_items+=("3" "Players 3 & 4")
+			else
+				if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3" "Player 3"); fi
+				if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4" "Player 4"); fi
+			fi
 			title="Sinden Test and Calibration"
 			selection=$(dialog --cancel-label " Back " --title "$title" --backtitle "$backtitle" --menu \
 			"\nWhich gun do you want to test/calibrate?\n\nNote: Running a test will stop any manually started running Lightgun processes" \
@@ -1398,7 +1624,8 @@ function test_menu(){
 
 }
 
-function set_osr_usage(){
+
+set_osr_usage(){
 
 	local title="Setting Offscreen Reload"
 	local menu_items=()
@@ -1447,16 +1674,16 @@ function moremenu(){
   while :; do
     compareresettypes
 	menu_items=()
-    menu_items+=("R"  "Reset Recoil on Each Boot : $(onoffread $cfg_recoilreset)")
+    menu_items+=("R"  "Reset Recoil on Each Boot     : $(onoffread $cfg_recoilreset)")
+    menu_items+=("1"  "Reset Type for Player 1       : $cfg_resettypeP1")
+    menu_items+=("2"  "Reset Type for Player 2       : $cfg_resettypeP2")
+    menu_items+=("3"  "Reset Type for Player 3       : $cfg_resettypeP3")
+    menu_items+=("4"  "Reset Type for Player 4       : $cfg_resettypeP4")
+    menu_items+=("G"  "Set Global Reset Type         : $greset") 
     menu_items+=(" "  "                                      ")
-    menu_items+=("1"  "Reset Type for Player 1   : $cfg_resettypeP1")
-    menu_items+=("2"  "Reset Type for Player 2   : $cfg_resettypeP2")
-    menu_items+=("3"  "Reset Type for Player 3   : $cfg_resettypeP3")
-    menu_items+=("4"  "Reset Type for Player 4   : $cfg_resettypeP4")
-    menu_items+=("G"  "Set Global Reset Type     : $greset") 
-    menu_items+=(" "  "                                      ")
-    menu_items+=("C"  "Set Lightgun Collection File")
+    menu_items+=("F"  "Set Lightgun Collection File")
     menu_items+=("O"  "Set O/S Reload Usage")
+    menu_items+=("C"  "Enable on-the-fly Calibration : $(onoffread $cfg_calibration)")
     menu_items+=(" "  "                                      ")
     menu_items+=("T"  "Test and Calibrate Lightguns")
 	menu_items+=("P"  "Test Sinden Pedals")
@@ -1473,13 +1700,14 @@ function moremenu(){
             3) set_reset "P3";;
             4) set_reset "P4";;
             G) set_reset_global ;;
-            C) set_collectionfile ;;
+            F) set_collectionfile ;;
 			O) set_osr_usage ;;
+			C) cfg_calibration=$(onoffwrite $cfg_calibration)  ;;
 			T) test_menu ;;
 			P) pedaltest_menu ;;
 			E) cfgeditmenu ;;
 			" ") ;;
-            *)  if [ $? -eq 2 ]; then showhelp; else return; fi;;
+            *)  if [ $? -eq 2 ]; then showhelp $helpmain; else return; fi;;
           esac
   done
 }
@@ -1494,13 +1722,13 @@ function mainmenu(){
     comparetypes
     gunsexist
 	menu_items=()
-    menu_items+=("A"  "Autostart Lightguns       : $(onoffread $cfg_enable)")
+    menu_items+=("A"  "Autostart Lightguns         : $(onoffread $cfg_enable)")
     menu_items+=(" "  "                                      ")
-    menu_items+=("G"  "Set States Globally       : $grecoil") 
-    if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1"  "Player 1                  : $cfg_recoiltypeP1"); fi
-    if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2"  "Player 2                  : $cfg_recoiltypeP2"); fi
-    if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3"  "Player 3                  : $cfg_recoiltypeP3"); fi
-    if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4"  "Player 4                  : $cfg_recoiltypeP4"); fi
+    menu_items+=("G"  "Set Default Recoil Globally : $grecoil") 
+    if [ -n "${lightgun_files[0]}" ]; then menu_items+=("1"  "Player 1                    : $cfg_recoiltypeP1"); fi
+    if [ -n "${lightgun_files[1]}" ]; then menu_items+=("2"  "Player 2                    : $cfg_recoiltypeP2"); fi
+    if [ -n "${lightgun_files[2]}" ]; then menu_items+=("3"  "Player 3                    : $cfg_recoiltypeP3"); fi
+    if [ -n "${lightgun_files[3]}" ]; then menu_items+=("4"  "Player 4                    : $cfg_recoiltypeP4"); fi
     menu_items+=(" "  "                                      ")
     menu_items+=("S"  "Save Changes")
     menu_items+=("X"  "Reset Unsaved Changes")
@@ -1526,7 +1754,7 @@ function mainmenu(){
             K) manual_stop ;;
 			Z) moremenu ;;
 			" ") ;;
-            *)  if [ $? -eq 2 ]; then showhelp; else return; fi;;
+            *)  if [ $? -eq 2 ]; then showhelp $helpmain; else return; fi;;
           esac
   done
 
@@ -1538,78 +1766,13 @@ function mainmenu(){
 
 
 function showhelp() {
-  local helptxt
   local title
-  helptxt="/home/$USERNAME/Lightgun/utils/help.txt"
-  title="Sinden Lightgun Autostart Options Help"
-  dialog --scrollbar --no-collapse --title "$title" --backtitle "$backtitle" --msgbox "$(head -c 5K $helptxt)" 35 70
-  sleep 3
+  title="Sinden Lightgun Autostart Help"
+  dialog --scrollbar --no-collapse --title "$title" --backtitle "$backtitle" --msgbox "$(head -c 5K $1)" 35 70
   echo $?
 }
 
 
-
-#########################
-#  Autostop
-#########################
-
-
-function stopguns(){
-    pkill -9 -f "mono"
-    rm /tmp/LightgunMono* -f
-	disable_os_reload_buttons
-}
-
-
-
-#########################
-#  Recoil Reset
-#########################
-
-
-function recoilreset(){
-  if [ $cfg_recoilreset = 1 ]; then
-    echo "reset the recoil"
-    applychange "$utilscfg" "RecoilTypeP1" $cfg_resettypeP1
-    applychange "$utilscfg" "RecoilTypeP2" $cfg_resettypeP2
-    applychange "$utilscfg" "RecoilTypeP3" $cfg_resettypeP3
-    applychange "$utilscfg" "RecoilTypeP4" $cfg_resettypeP4
-  else
-    echo "don't reset"
-  fi
-
-}
-
-
-
-#########################
-#  Uninstall
-#########################
-
-
-function linedelete(){
-  sed -i "/$1/d" $2
-}
-
-
-function uninstall() {
-  local yn
-  echo "This command will uninstall Sinden Autostart."
-  echo " : Proceeding with uninstall!"
-  
-  applychange "$utilscfg" "AutostartEnable"        "0"
-  echo "...Autostart disabled in widgeutils.cfg..."
-  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/autostart.sh"
-  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onlaunch.sh"
-  linedelete "sindenautostart.sh" "/opt/retropie/configs/all/runcommand-onend.sh"
-  echo "...Removed references to sindenautostart from EmulationStation files..."
-  /bin/rm -f "/home/$USERNAME/Lightgun/utils/sindenautostart.sh"
-  echo "...Deleted sindenautostart.sh..."
-  bin/rm -f "/home/$USERNAME/RetroPie/roms/sinden/Sinden Lightgun Autostart Options.sh"
-  bin/rm -f "/home/$USERNAME/RetroPie/roms/ports/Sinden Lightgun Autostart Options.sh"
-  echo "...Deleted Options Menu from EmulationStation..."
-  echo "Uninstall complete."
-}
 
 
 
@@ -1618,37 +1781,28 @@ function uninstall() {
 #########################
 
 
-function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P2_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P4_auto
+function enable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. 
+	#sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P1
+	#sed -i -e "/.*\"OffscreenReloadP2\"/s/value=\".*\"/value=\"1\"/" $cfg_P2
+	#sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"1\"/" $cfg_P3
+	#sed -i -e "/.*\"OffscreenReloadP2\"/s/value=\".*\"/value=\"1\"/" $cfg_P4
+	applyconfigchange "$appdir/$cfg_P1" "OffscreenReload"   "1"
+	applyconfigchange "$appdir/$cfg_P2" "OffscreenReloadP2" "1"
+	applyconfigchange "$appdir/$cfg_P3" "OffscreenReload"   "1"
+	applyconfigchange "$appdir/$cfg_P4" "OffscreenReloadP2" "1"
 	
 }
 
 
-function disable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. Can be deleted if o/s reload toggle is implemented in Sinden driver release (see Autostart section below)
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_norm
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_reco
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P2_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3_auto
-	sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P4_auto
-	
+function disable_os_reload_buttons() {		## ## -- Required for Supermodel o/s reloading. 
+	#sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P1
+	#sed -i -e "/.*\"OffscreenReloadP2\"/s/value=\".*\"/value=\"0\"/" $cfg_P2
+	#sed -i -e "/.*\"OffscreenReload\"/s/value=\".*\"/value=\"0\"/" $cfg_P3
+	#sed -i -e "/.*\"OffscreenReloadP2\"/s/value=\".*\"/value=\"0\"/" $cfg_P4
+	applyconfigchange "$appdir/$cfg_P1" "OffscreenReload"   "0"
+	applyconfigchange "$appdir/$cfg_P2" "OffscreenReloadP2" "0"
+	applyconfigchange "$appdir/$cfg_P3" "OffscreenReload"   "0"
+	applyconfigchange "$appdir/$cfg_P4" "OffscreenReloadP2" "0"
 }
 
 
@@ -1673,27 +1827,16 @@ function autostart(){
     done
 	
 	gunsexist
-	 
 	for ((i=0; i<4; i++)); do
 		j=$((i + 1))  # Increment the value of i to get j
 		if [ -n "${lightgun_files[$i]}" ]; then
 			devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
-			player="cfg_P"$j"_"
-
-			typeVar="cfg_recoiltypeP${i}"
-			typeVar= "${!typeVar}"
-			case "${!typeVar}" in
-				single) player="${player}reco" ;;
-				auto)   player="${player}auto" ;;
-				*)      player="${player}norm" ;;
-			esac
-
-			if [ -n "${lightgun_files[$i]}" ]; then
-				cd "${!player%/*}"
-				mono-service "${!player%.config}"
-			fi 
 		fi
-	done
+	done	
+	
+	cd $appdir
+	if [ -n "${lightgun_files[0]}" ] || [ -n "${lightgun_files[1]}" ]; then mono-service "${cfg_P1%.config}"; fi
+	if [ -n "${lightgun_files[2]}" ] || [ -n "${lightgun_files[3]}" ]; then mono-service "${cfg_P3%.config}"; fi
 	sleep 5
 
   fi
@@ -1701,10 +1844,22 @@ function autostart(){
 
 
 
+#########################
+#  Autostop
+#########################
+
+
+function stopguns(){
+    pkill -9 -f "mono"
+    rm /tmp/LightgunMono* -f
+	disable_os_reload_buttons
+}
+
+
+
 #############################
 ############  START  #######
 ###########################
-
 
 prep
 
@@ -1720,8 +1875,8 @@ while getopts a:rxu flag
     exit
   done
 
-
 /opt/retropie/admin/joy2key/joy2key start
 mainmenu
 /opt/retropie/admin/joy2key/joy2key stop
+
 clear

@@ -1,0 +1,28 @@
+Sinden Autostart Recoil Options Help
+-----------------------------
+
+The Sinden Lightgun has three recoil modes: Single (firing the solenoid once per event), Auto (repeated firing throughout the duration of an event) and Off (no recoil).
+
+Rapid firing at high strength and frequency levels can deplete the capacitor faster than it can recharge. You can make adjustments here to mitigate against that.
+
+Single Recoil Strength
+- Recoil strength 0-100 (non-linear scale). 100 is max. Higher values will deplete the capacitor quickly.
+
+Auto Recoil Strength
+- Strength of the automatic (machine gun) recoil, 80 is strong 40 is medium. Higher values will deplete the capacitor quickly.
+
+Auto Start Delay
+- In Auto mode, sets a timed delay after the first pulse before the repeated  pulses begin.  Can act as a "mixed-mode" between single shot and automatic if you set the delay at the right value. Higher values increase the duration of the delay. 0 is no delay.
+
+Auto Pulse Delay
+- Time between each firing of the solenoid for Auto recoil. Higher values are less frequent but can help reduce power loss.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.

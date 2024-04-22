@@ -1,0 +1,29 @@
+Sinden Autostart Buttons Options Help
+-----------------------------
+
+The Sinden software maps a mouse/keyboard input to each of its buttons. Assign what input event applies to each button here.
+
+Editing the button mapping may lead to loss of functions in games if they have been pre-configured with the existing settings in mind. Proceed only if you have made backups of your configs and you know what you are doing."
+
+
+Normal Button Actions
+- The Sinden software maps a mouse/keyboard input to each of it's buttons. Assign what input event applies to each button here.
+
+Off-Screen Button Actions
+- The Sinden software can also apply an alternate mouse/keyboard input to each of it's buttons if it's detected as being outside of the bounds of the screen/border. Assign what alternate input event applies to each button here. Only applies when activated according to the selections made in "Set O/S Reload Usage" from the main menu.
+
+Transfer settings
+- Copy this player's saved settings to another player.
+
+Save changes
+- Write changes made to the player's config. Quitting without saving will lose any changes made.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.

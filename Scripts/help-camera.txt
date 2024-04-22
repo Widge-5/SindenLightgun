@@ -1,0 +1,44 @@
+Sinden Autostart Camera Options Help
+-----------------------------
+
+The lightgun camera needs to be able to see the entire border clearly at all times to be able to calculate where you are aiming.  It's advisable to ensure that your screen is as bright as possible, and not using any kind of economy mode (as this can dim the image).  If the display has a "Game" mode then this usually helps, though in a few rare cases it can be detrimental.  Afterwards, you should then also tune the gun's Brightness, Contrast and (sometimes) Exposure settings to increase its border-detection consistency.
+
+Brightness
+- Default 100. Higher values increase luminance, making for a brighter image as seen by the camera, lower values reduce it making the image darker.
+
+Contrast
+- Default 100. Higher values increase tonal separation, lower values are more subdued.
+
+Auto Exposure on/off
+- Disabling this setting brings the "Manual Exposure" setting into effect. Auto exposure is usually fine on most modern screens, but if your display is a CRT, a projector, or otherwise somewhat dim, then manual exposure setting might be necessary.
+
+Manual Exposure
+- When Auto Exposure is off, adjusts amount of light captured by the camera. Blank=default, 19 very low, 39 low, 79 default, 159 high.
+
+Colour Match Range
+- Default 220. How strict the Sinden Lightgun is when identifying the (white) colour of the border. Lower is stricter, higher can be useful to assist border detection but can also introduce interference from nearby bright objects.
+
+Match Only Where Pointing
+- When enabled, the Sinden Lightgun assumes the rectangle you are pointing at is the target border, rather than biggest within the field of view. Enabling may help with recognition if there is difficult background such as a bright window.
+
+Camera Resolution
+- Default 640,480.  Can be reduced to 320,240 if the device is weak (such as a Raspberry Pi 3) to reduce the workload and potentially decrease latency.
+
+Gangsta Setting
+- Required to retain correct orientation When holding the gun sideways.
+
+Transfer settings
+- Copy this player's saved settings to another player.
+
+Save changes
+- Write changes made to the player's config. Quitting without saving will lose any changes made.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.

@@ -1,0 +1,63 @@
+Sinden Autostart Options Help
+-----------------------------
+
+Autostart Lightguns
+- When On, the Autostart feature of this utility is activated. Guns will be automatically started when relevant games are launched, and automatically deactivated when the game is closed.
+
+Set Default Recoil Globally
+- Applies the same default recoil settings to all guns.
+
+Player 1-4
+- Only connected guns will be shown here. Set the default recoil setting for each gun individually. States can be as follows:
+- - "Silent" - active using the no-recoil config settings
+- - "Single" - active using the single-shot config settings
+- - "Auto"   - active using the auto-recoil config settings
+
+Save Changes
+- Save Autostart settings applied here
+
+Reset Unsaved Changes
+- Restore settings back to the last-saved state.
+
+Manually Start Lightguns
+- Disables Autostart and activates lightguns according to the "State" setting applied above.  Guns will remain persistently active until manually stopped or disconnected.
+
+Kill Running Lightgun Processes.
+- Manually stops any gun processes that were started manually.
+
+Reset Recoil on Each Boot
+- When On, the gun's default states will be reset back to pre-determined states on each system boot.  The use cases for this feature are now limited since version 1.9 of the Sinden firmware has on-the-fly recoil mode switching, but this can be useful if you occasionally use recoil and are likely to forget to return the default states to Silent before the next late-night gaming session.
+
+Reset Types for Players 1-4
+- Set the default recoil setting the Reset setting will apply to each player individually.
+
+Set Global Reset Type
+- Set the default recoil setting the Reset setting will apply to each player globally.
+
+Set Lightgun Collection File
+- The use of EmulationStation's custom "Collections" is a useful way of telling the Autostart utility which games are lightgun games. It would be a pointless waste of resources to start the lightgun processes on games that do not use lightguns so it would be ideal to use this feature. However, if no collection file is set here then Autostart will apply for all games indiscriminately. Also note that after creating/editing a collection, its advisable that you restart EmulationStation for the changes to take effect.
+
+Set O/S Reload Usage
+- Most emulators are fine recognising offscreen/onscreen shots with normal settings. But there are a few that don't recognise shots as being fired offscreen as they have no usable area outside of the main game window. One such emulator is the Model 3 emulator called "Supermodel" or "Supermodel 3".  The Sinden software can compensate for this with a config setting that can be enabled to send a different input if a shot is out of bounds. Use this setting to choose emulators that would need this setting enabled.
+
+Enable on-the-fly Calibration
+- When enabled, holding "D-Pad Left" for 3 seconds at any time when the gun process is active, will put the gun into calibration mode allowing you to recalibrate at any time using an in-game crosshair if present. This shouldn't be necessary all of the time, if a game requires use of the d-pad then this feature should be disabled to avoid unintended recalibration.  Firmware v1.9 required
+
+Test and Calibrate Lightguns
+- Launches the standard Sinden Lightgun test utility. Only connected Lightguns will be listed here.
+
+Test Sinden Pedals
+- Test your Sinden Pedals to see if they are working and what key they are sending. If you have multiple Sinden pedals sending the same key, then you should reconfigure at least one of them via the Windows Sinden Pedal Configuration software. Only connected Sinden Pedals will be listed here (max 4).
+
+Lightgun Config Editor
+- An extra utility incorporated here that allows the editing of Lightgun config files directly in the interface, rather than editing manually in a text editor.  Also allows backups to be made and restored and settings to be transferred between config files. Use with caution.
+
+-----------------------------
+
+If you wish to uninstall this utility and the Sinden Lightgun software, you can do so via the installation package in RetroPie-Setup.
+
+This utility, the installation package and the included Sinden logo graphic were created by Widge in January 2024.
+YouTube: www.youtube.com/@widge
+GitHub:  www.github.com/Widge-5
+
+Sinden Lightgun and its logos are registered trademarks owned by Sinden Technology Ltd.
