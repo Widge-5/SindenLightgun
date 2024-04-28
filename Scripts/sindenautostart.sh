@@ -1680,8 +1680,7 @@ function autostart(){
 			devNum=$((10#${lightgun_files[$i]##*[!0-9]} + 1)) 
 			player="cfg_P"$j"_"
 
-			typeVar="cfg_recoiltypeP${i}"
-			typeVar= "${!typeVar}"
+			typeVar="cfg_recoiltypeP${j}"
 			case "${!typeVar}" in
 				single) player="${player}reco" ;;
 				auto)   player="${player}auto" ;;
